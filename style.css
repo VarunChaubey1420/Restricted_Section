@@ -31,9 +31,26 @@ nav{
     transition:0.3s;
 }
 
-nav h1{
+.logo{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    text-decoration:none;
+}
+
+.logo img{
+    width:52px;
+    height:52px;
+    object-fit:contain;
+    transition:0.4s;
+}
+
+.logo span{
+    font-size:30px;
+    font-family:"Cinzel",serif;
+    font-weight:700;
     color: royalblue;
-    font-size: 30px;
+    letter-spacing:2px;
 }
 
 nav ul{
@@ -74,6 +91,14 @@ nav a.active{
 
 nav a.active::after{
     width:100%;
+}
+
+.logo::after{
+    display:none;
+}
+
+.logo:hover::after{
+    width:0;
 }
 
 /* HERO SECTION */
@@ -250,50 +275,6 @@ footer{
     text-align: center;
     padding: 25px;
     color: #777777;
-}
-
-/* MOBILE RESPONSIVE */
-@media(max-width: 768px){
-    nav{
-        padding: 20px;
-    }
-
-    nav ul{
-        gap: 15px;
-    }
-
-    nav h1{
-        font-size: 20px;
-    }
-    .hero{
-        min-height:100vh;
-        padding-top:120px;
-        margin-top:-110px;
-        padding-top:110px;
-    }
-
-    .hero h2{
-        font-size: 45px;
-    }
-
-    .hero p{
-        font-size: 18px;
-    }
-
-    .books{
-        padding: 60px 20px;
-    }
-
-    .book-container{
-        flex-direction:column;
-        align-items:center;
-    }
-
-    .book-card{
-        width:100%;
-        max-width:320px;
-    }
-
 }
 
 /* HERO ANIMATION */
@@ -534,4 +515,88 @@ footer{
     transform:translateY(-2px);
     box-shadow:
     0 0 15px rgba(65,105,225,0.5);
+}
+
+@media(max-width:768px){
+
+    nav{
+        padding:15px 20px;
+    }
+
+    .logo{
+        gap:10px;
+    }
+
+    .logo img{
+        width:40px;
+        height:40px;
+    }
+
+    .logo span{
+        font-size:20px;
+        letter-spacing:1px;
+    }
+
+    nav ul{
+        gap:18px;
+    }
+
+    nav a{
+        font-size:15px;
+    }
+
+    .hero{
+        min-height:100vh;
+        margin-top:-80px;
+        padding:100px 20px 20px;
+    }
+
+    .hero h2{
+        font-size:42px;
+    }
+
+    .hero p{
+        font-size:17px;
+    }
+
+    .books{
+        padding:60px 15px;
+    }
+
+    .books h2{
+        font-size:38px;
+    }
+
+    .series-content{
+        padding:20px;
+    }
+
+    .series-content h3{
+        font-size:28px;
+    }
+
+    .series-content p{
+        font-size:15px;
+    }
+
+    .mini-book{
+        min-width:180px;
+    }
+
+    .mini-book img{
+        height:240px;
+    }
+
+    .about{
+        padding:60px 20px;
+    }
+
+    .about h2{
+        font-size:35px;
+    }
+
+    .about p{
+        font-size:16px;
+    }
+
 }

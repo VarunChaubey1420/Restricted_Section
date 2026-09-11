@@ -1,0 +1,8 @@
+{
+  "name": "Arcane Archives",
+  "description": "A modern digital library to explore original fantasy and psychological mystery stories, book collections, and archives.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

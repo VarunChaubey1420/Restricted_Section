@@ -177,14 +177,14 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
             document.body.classList.add("nox-mode");
             if (lumosBtn) {
                 lumosBtn.innerHTML = `<span class="lumos-wand">✨</span><span class="lumos-text">Lumos</span>`;
-                lumosBtn.setAttribute("title", "Cast Lumos to ignite floating candles");
+                lumosBtn.setAttribute("title", "Cast Lumos to illuminate the library");
             }
             localStorage.setItem("arcane_candle_mode", "nox");
         } else {
             document.body.classList.remove("nox-mode");
             if (lumosBtn) {
                 lumosBtn.innerHTML = `<span class="lumos-wand">🪄</span><span class="lumos-text">Nox</span>`;
-                lumosBtn.setAttribute("title", "Cast Nox to extinguish floating candles");
+                lumosBtn.setAttribute("title", "Cast Nox to dim the library into darkness");
             }
             localStorage.setItem("arcane_candle_mode", "lumos");
         }
@@ -197,7 +197,7 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
         lumosBtn.addEventListener("click", () => {
             const isCurrentlyNox = document.body.classList.contains("nox-mode");
             setLumosState(!isCurrentlyNox);
-            showToast(isCurrentlyNox ? "Lumos! The candles ignite." : "Nox! The chamber dims into shadows.");
+            showToast(isCurrentlyNox ? "Lumos! Radiant warmth illuminates the library." : "Nox! The Restricted Section dims into shadowy arcane twilight.");
         });
     }
 

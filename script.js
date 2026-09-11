@@ -83,6 +83,7 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
 
     // Fetch real reviews from Firestore database via /api/reviews
     async function fetchReviewsFromDatabase() {
+        const ledgerPill = document.getElementById("ledgerStatusPill");
         try {
             const response = await fetch('/api/reviews');
             if (response.ok) {
@@ -92,15 +93,29 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
                     saveStoredReviews(reviews);
                     updateScoreboard();
                     renderReviews();
+                    if (ledgerPill) {
+                        ledgerPill.innerHTML = '<span class="ledger-dot"></span><span>Global Cloud Archive • Active</span>';
+                    }
                     return;
                 }
             }
         } catch (err) {
             console.warn("[Firestore] Unable to fetch remote reviews, using local cache:", err);
+            if (ledgerPill) {
+                ledgerPill.innerHTML = '<span class="ledger-dot" style="background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span><span>Archival Cache Active</span>';
+            }
         }
         updateScoreboard();
         renderReviews();
     }
+
+    // Auto-sync with Firestore every 15 seconds and on tab refocus
+    setInterval(fetchReviewsFromDatabase, 15000);
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            fetchReviewsFromDatabase();
+        }
+    });
 
     // Track user's upvoted reviews in this session / localStorage
     function getVotedReviewIds() {
@@ -297,6 +312,7 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
     function updateScoreboard() {
         const total = reviews.length;
         const scoreLargeEl = document.querySelector(".score-large");
+        const scoreStarsEl = document.getElementById("scoreStars");
         const rows = document.querySelectorAll(".rating-bar-row");
         const seriesCountArjun = document.getElementById("seriesCountArjun");
         const seriesCountFiles = document.getElementById("seriesCountFiles");
@@ -350,6 +366,7 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
         const avg = (sum / total).toFixed(1);
 
         if (scoreLargeEl) scoreLargeEl.textContent = avg;
+        if (scoreStarsEl) scoreStarsEl.textContent = renderStars(Math.round(Number(avg)));
 
         if (totalReviewsCountEl) {
             totalReviewsCountEl.textContent = `Based on ${total} Inscribed Scroll${total > 1 ? "s" : ""}`;
@@ -756,11 +773,14 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
                 }
             }
 
-            reviews.unshift(newReview);
+            if (!reviews.some((r) => r.id === newReview.id)) {
+                reviews.unshift(newReview);
+            }
             saveStoredReviews(reviews);
 
             updateScoreboard();
             renderReviews();
+            fetchReviewsFromDatabase();
 
             reviewForm.reset();
             if (ratingValueInput) ratingValueInput.value = "5";

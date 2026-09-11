@@ -1119,6 +1119,35 @@ body.nox-mode .lumos-toggle {
     font-style: italic;
 }
 
+.ledger-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(26, 17, 10, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    font-size: 11px;
+    color: var(--gold-light);
+    font-family: var(--font-heading);
+    letter-spacing: 0.5px;
+}
+
+.ledger-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 6px #4ade80;
+    animation: ledgerPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes ledgerPulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
 .score-breakdown {
     display: flex;
     flex-direction: column;

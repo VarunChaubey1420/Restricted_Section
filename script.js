@@ -1,116 +1,929 @@
-// HERO BUTTON
-const exploreButton = document.querySelector(".hero button");
+/**
+ * Arcane Archives - Hogwarts Library & Restricted Section Scribe Logic
+ * Author: Varun Chaubey
+ */
 
-// BOOK SECTION
-const booksSection = document.querySelector(".books");
+document.addEventListener("DOMContentLoaded", () => {
+    // =========================================================================
+    // 1. DEFAULT DATASET & LOCAL STORAGE MANAGEMENT
+    // =========================================================================
 
-// BUTTON CLICK EVENT
-exploreButton.addEventListener("click", () => {
-    booksSection.scrollIntoView({
-        behavior: "smooth"
-    });
-});
+    // Real User Reviews Storage (No fake reviews seeded)
+    const DEFAULT_REVIEWS = [];
 
-// BOOK BUTTONS
-const bookButtons = document.querySelectorAll(".book-card button");
+    const BOOK_EXCERPTS = {
+        arjun: {
+            title: "Arjun's Odyssey: Mysteries Of Navrang Van",
+            badge: "Mythic Relics Universe • Tome I",
+            coverImg: "images/arjun1.png",
+            lead: "Prologue: When the Stone Relics Awoke in the Astral Mist",
+            excerpt: `The mist of Navrang Van did not obey the winds of the mundane world. It coiled between the banyan roots like living silver, whispering fragments of forgotten chants in a language Arjun had only heard in fever dreams.
 
-// ALERT MESSAGE
-bookButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-        alert("Book link will be added soon!");
-    });
-});
+His hand touched the weathered sandstone monolith. The glyphs—carved before kings walked the plains—blazed with a sudden, amber resonance. The forest sighed around him, trees trembling not from storm, but from memory.
 
-// NAVBAR SHADOW ON SCROLL
-const navbar = document.querySelector("nav");
+"Step forward, seeker," a low voice echoed from within the stones, vibrating in the marrow of his bones. "The threshold between worlds does not open for the cautious."
 
-window.addEventListener("scroll", () => {
-    if(window.scrollY > 50){
-        navbar.style.boxShadow = "0 0 20px rgba(0,0,0,0.8)";
+Arjun tightened his grip on his satchel. The relic inside pulsed with warmth, answering the beacon of Navrang Van. There was no turning back now.`,
+            primaryActionText: "Inquire for Full Grimoire",
+            primaryActionType: "review",
+            secondaryActionText: "Inscribe Scroll Review"
+        },
+        files: {
+            title: "The Files They Buried: The Case That Stayed",
+            badge: "Department of Mysteries Dossier • Case 01",
+            coverImg: "images/files1.png",
+            lead: "Declassified Confidential Dossier • Audio Log 04-B",
+            excerpt: `[TRANSCRIPT BEGINS - CLASSIFIED LEVEL V]
+
+INVESTIGATOR: "State your name for the magnetic wire, please."
+SUBJECT: [Ten seconds of unbroken silence, followed by the sound of fingers tapping a rhythmic cadence on zinc table.]
+INVESTIGATOR: "The records show you were on the perimeter fence at 02:40 hours. Yet the biometric registry at Sector 9 has your signature timestamped at exactly the same minute. Who walked through the gate, Arthur?"
+SUBJECT: "You assume the person who walked out was the same one who walked in. You still believe memory is a fixed room, Inspector. Let me show you what happens when someone takes down the walls."
+
+[STATIC SURGE - INEXPLICABLE FREQUENCY INTERFERENCE DETECTED - RECORDING TERMINATES]`,
+            primaryActionText: "Open PDF Dossier",
+            primaryActionType: "pdf",
+            pdfLink: "books/Files They Buried.pdf",
+            secondaryActionText: "Inscribe Case Review"
+        }
+    };
+
+    // Purge any old fake reviews and load real user reviews from storage
+    function getStoredReviews() {
+        try {
+            const stored = localStorage.getItem("arcane_reviews_v1");
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    // Filter out any legacy mock reviews
+                    const realReviews = parsed.filter(
+                        (r) => r && !["rev-1", "rev-2", "rev-3", "rev-4", "rev-5", "rev-6"].includes(r.id) &&
+                               !["Scholar Ronald Thorne", "Detective Helena Vance", "Alistair Blackwood", "Dr. Evelyn Graves", "Kaelen Drake", "Marcus Crowley"].includes(r.reviewerName)
+                    );
+                    return realReviews;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not parse stored reviews", e);
+        }
+        return [];
     }
-    else{
-        navbar.style.boxShadow = "none";
-    }
-});
 
-const cards=document.querySelectorAll(".book-card");
-window.addEventListener("scroll",()=>{
-    cards.forEach((card)=>{
-        const cardTop=card.getBoundingClientRect().top;
-        if(cardTop<window.innerHeight-100){
-            card.classList.add("show");
+    function saveStoredReviews(reviewsList) {
+        try {
+            localStorage.setItem("arcane_reviews_v1", JSON.stringify(reviewsList));
+        } catch (e) {
+            console.error("Failed to persist reviews locally", e);
+        }
+    }
+
+    let reviews = getStoredReviews();
+    let currentFilter = "all";
+    let currentSort = "highest";
+
+    // Fetch real reviews from Firestore database via /api/reviews
+    async function fetchReviewsFromDatabase() {
+        try {
+            const response = await fetch('/api/reviews');
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    reviews = data;
+                    saveStoredReviews(reviews);
+                    updateScoreboard();
+                    renderReviews();
+                    return;
+                }
+            }
+        } catch (err) {
+            console.warn("[Firestore] Unable to fetch remote reviews, using local cache:", err);
+        }
+        updateScoreboard();
+        renderReviews();
+    }
+
+    // Track user's upvoted reviews in this session / localStorage
+    function getVotedReviewIds() {
+        try {
+            const stored = localStorage.getItem("arcane_voted_reviews");
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveVotedReviewId(id) {
+        try {
+            const voted = getVotedReviewIds();
+            if (!voted.includes(id)) {
+                voted.push(id);
+                localStorage.setItem("arcane_voted_reviews", JSON.stringify(voted));
+            }
+        } catch (e) {
+            console.warn("Could not save voted review", e);
+        }
+    }
+
+    // =========================================================================
+    // 2. HERO SECTION TYPING TEXT
+    // =========================================================================
+    const typingPhrases = [
+        "Stories Between Worlds",
+        "Ancient Lore & Classified Dossiers",
+        "Where Relics Awaken and Mysteries Unravel",
+        "Forbidden Chronicles of Navrang Van"
+    ];
+    const typingElement = document.getElementById("typing-text");
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 90;
+
+    function handleTyping() {
+        if (!typingElement) return;
+        const currentPhrase = typingPhrases[phraseIndex];
+
+        if (isDeleting) {
+            typingElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            typingSpeed = 45;
+        } else {
+            typingElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            typingSpeed = 95;
+        }
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            isDeleting = true;
+            typingSpeed = 1800; // Pause at full phrase
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % typingPhrases.length;
+            typingSpeed = 400; // Pause before new phrase
+        }
+
+        setTimeout(handleTyping, typingSpeed);
+    }
+    handleTyping();
+
+    // =========================================================================
+    // 3. LUMOS / NOX CANDLE TOGGLE
+    // =========================================================================
+    const lumosBtn = document.getElementById("lumosBtn");
+    const candleChamber = document.getElementById("candleChamber");
+
+    function setLumosState(isNox) {
+        if (isNox) {
+            document.body.classList.add("nox-mode");
+            if (lumosBtn) {
+                lumosBtn.innerHTML = `<span class="lumos-wand">✨</span><span class="lumos-text">Lumos</span>`;
+                lumosBtn.setAttribute("title", "Cast Lumos to ignite floating candles");
+            }
+            localStorage.setItem("arcane_candle_mode", "nox");
+        } else {
+            document.body.classList.remove("nox-mode");
+            if (lumosBtn) {
+                lumosBtn.innerHTML = `<span class="lumos-wand">🪄</span><span class="lumos-text">Nox</span>`;
+                lumosBtn.setAttribute("title", "Cast Nox to extinguish floating candles");
+            }
+            localStorage.setItem("arcane_candle_mode", "lumos");
+        }
+    }
+
+    const savedCandleMode = localStorage.getItem("arcane_candle_mode") || "lumos";
+    setLumosState(savedCandleMode === "nox");
+
+    if (lumosBtn) {
+        lumosBtn.addEventListener("click", () => {
+            const isCurrentlyNox = document.body.classList.contains("nox-mode");
+            setLumosState(!isCurrentlyNox);
+            showToast(isCurrentlyNox ? "Lumos! The candles ignite." : "Nox! The chamber dims into shadows.");
+        });
+    }
+
+    // =========================================================================
+    // 4. NAVBAR SCROLL & ACTIVE LINK HIGHLIGHTING
+    // =========================================================================
+    const navbar = document.getElementById("mainNav");
+    const navLinks = document.querySelectorAll(".nav-links a");
+    const sections = document.querySelectorAll("section");
+
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 40) {
+            navbar.classList.add("scrolled");
+        } else {
+            navbar.classList.remove("scrolled");
+        }
+
+        let currentId = "";
+        sections.forEach((section) => {
+            const sectionTop = section.offsetTop - 140;
+            if (window.scrollY >= sectionTop) {
+                currentId = section.getAttribute("id");
+            }
+        });
+
+        navLinks.forEach((link) => {
+            link.classList.remove("active");
+            if (link.getAttribute("href") === `#${currentId}`) {
+                link.classList.add("active");
+            }
+        });
+    });
+
+    // =========================================================================
+    // 5. BOOK SLIDERS (INSPECT / COLLAPSE & DRAG TO SCROLL)
+    // =========================================================================
+    const viewButtons = document.querySelectorAll(".view-books-btn");
+    viewButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const targetId = btn.getAttribute("data-target");
+            const slider = document.getElementById(targetId);
+            if (!slider) return;
+
+            const isShown = slider.classList.contains("show");
+            if (isShown) {
+                slider.classList.remove("show");
+                btn.querySelector(".btn-text").textContent = targetId.includes("Arjun") ? "Inspect Stacks" : "Access Dossiers";
+                btn.querySelector(".arrow-icon").textContent = "▾";
+            } else {
+                slider.classList.add("show");
+                btn.querySelector(".btn-text").textContent = "Hide Stacks";
+                btn.querySelector(".arrow-icon").textContent = "▴";
+            }
+        });
+    });
+
+    const sliders = document.querySelectorAll(".books-slider");
+    sliders.forEach((slider) => {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener("mousedown", (e) => {
+            isDown = true;
+            slider.style.cursor = "grabbing";
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener("mouseleave", () => {
+            isDown = false;
+            slider.style.cursor = "grab";
+        });
+
+        slider.addEventListener("mouseup", () => {
+            isDown = false;
+            slider.style.cursor = "grab";
+        });
+
+        slider.addEventListener("mousemove", (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.8;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    });
+
+    // =========================================================================
+    // 6. REVIEWS SCOREBOARD & CALCULATION ENGINE
+    // =========================================================================
+    const totalReviewsCountEl = document.getElementById("totalReviewsCount");
+    const countAllEl = document.getElementById("countAll");
+    const countArjunEl = document.getElementById("countArjun");
+    const countFilesEl = document.getElementById("countFiles");
+
+    function updateScoreboard() {
+        const total = reviews.length;
+        const scoreLargeEl = document.querySelector(".score-large");
+        const rows = document.querySelectorAll(".rating-bar-row");
+        const seriesCountArjun = document.getElementById("seriesCountArjun");
+        const seriesCountFiles = document.getElementById("seriesCountFiles");
+        const seriesRatingArjun = document.getElementById("seriesRatingArjun");
+        const seriesRatingFiles = document.getElementById("seriesRatingFiles");
+
+        const arjunReviews = reviews.filter((r) => r.bookCategory === "arjun");
+        const filesReviews = reviews.filter((r) => r.bookCategory === "files");
+
+        const arjunCount = arjunReviews.length;
+        const filesCount = filesReviews.length;
+
+        if (countAllEl) countAllEl.textContent = total;
+        if (countArjunEl) countArjunEl.textContent = arjunCount;
+        if (countFilesEl) countFilesEl.textContent = filesCount;
+
+        if (seriesCountArjun) seriesCountArjun.textContent = `(${arjunCount} Scroll${arjunCount === 1 ? "" : "s"})`;
+        if (seriesCountFiles) seriesCountFiles.textContent = `(${filesCount} Scroll${filesCount === 1 ? "" : "s"})`;
+
+        if (arjunCount > 0 && seriesRatingArjun) {
+            const avgA = (arjunReviews.reduce((acc, r) => acc + Number(r.rating || 5), 0) / arjunCount).toFixed(1);
+            seriesRatingArjun.textContent = avgA;
+        } else if (seriesRatingArjun) {
+            seriesRatingArjun.textContent = "—";
+        }
+
+        if (filesCount > 0 && seriesRatingFiles) {
+            const avgF = (filesReviews.reduce((acc, r) => acc + Number(r.rating || 5), 0) / filesCount).toFixed(1);
+            seriesRatingFiles.textContent = avgF;
+        } else if (seriesRatingFiles) {
+            seriesRatingFiles.textContent = "—";
+        }
+
+        if (total === 0) {
+            if (scoreLargeEl) scoreLargeEl.textContent = "—";
+            if (totalReviewsCountEl) {
+                totalReviewsCountEl.textContent = "No inscribed scrolls yet • Be the first reviewer";
+            }
+            if (rows.length >= 3) {
+                rows.forEach((row) => {
+                    const fill = row.querySelector(".bar-fill");
+                    const pct = row.querySelector(".bar-pct");
+                    if (fill) fill.style.width = "0%";
+                    if (pct) pct.textContent = "0%";
+                });
+            }
+            return;
+        }
+
+        const sum = reviews.reduce((acc, r) => acc + Number(r.rating || 5), 0);
+        const avg = (sum / total).toFixed(1);
+
+        if (scoreLargeEl) scoreLargeEl.textContent = avg;
+
+        if (totalReviewsCountEl) {
+            totalReviewsCountEl.textContent = `Based on ${total} Inscribed Scroll${total > 1 ? "s" : ""}`;
+        }
+
+        // Ratings breakdown
+        const count5 = reviews.filter((r) => Number(r.rating) === 5).length;
+        const count4 = reviews.filter((r) => Number(r.rating) === 4).length;
+        const count3 = reviews.filter((r) => Number(r.rating) <= 3).length;
+
+        const pct5 = Math.round((count5 / total) * 100);
+        const pct4 = Math.round((count4 / total) * 100);
+        const pct3 = Math.round((count3 / total) * 100);
+
+        if (rows.length >= 3) {
+            rows[0].querySelector(".bar-fill").style.width = `${pct5}%`;
+            rows[0].querySelector(".bar-pct").textContent = `${pct5}%`;
+
+            rows[1].querySelector(".bar-fill").style.width = `${pct4}%`;
+            rows[1].querySelector(".bar-pct").textContent = `${pct4}%`;
+
+            rows[2].querySelector(".bar-fill").style.width = `${pct3}%`;
+            rows[2].querySelector(".bar-pct").textContent = `${pct3}%`;
+        }
+    }
+
+    // =========================================================================
+    // 7. RENDER REVIEWS GRID
+    // =========================================================================
+    const reviewsGrid = document.getElementById("reviewsGrid");
+
+    function renderStars(rating) {
+        const r = Math.min(Math.max(Number(rating) || 5, 1), 5);
+        return "★".repeat(r) + "☆".repeat(5 - r);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function renderReviews() {
+        if (!reviewsGrid) return;
+
+        let filtered = reviews.filter((rev) => {
+            if (currentFilter === "all") return true;
+            return rev.bookCategory === currentFilter;
+        });
+
+        // Sorting
+        filtered.sort((a, b) => {
+            if (currentSort === "highest") {
+                return (b.rating || 5) - (a.rating || 5) || (b.timestamp || 0) - (a.timestamp || 0);
+            }
+            if (currentSort === "newest") {
+                return (b.timestamp || 0) - (a.timestamp || 0);
+            }
+            if (currentSort === "helpful") {
+                return (b.helpfulCount || 0) - (a.helpfulCount || 0);
+            }
+            return 0;
+        });
+
+        if (filtered.length === 0) {
+            reviewsGrid.innerHTML = `
+                <div class="no-reviews-parchment" style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; border: 1px dashed var(--border-gold); border-radius: 12px; background: rgba(26,17,10,0.5);">
+                    <p style="font-family: var(--font-heading); font-size: 20px; color: var(--gold-light); margin-bottom: 8px;">No scrolls found under this archive category</p>
+                    <p style="color: var(--text-subtle); margin-bottom: 20px;">Be the first scholar to inscribe a review for this volume.</p>
+                    <button class="magical-btn primary-btn" id="emptyInscribeBtn">
+                        <span class="btn-feather">🪶</span> Inscribe First Scroll
+                    </button>
+                </div>
+            `;
+            const emptyBtn = document.getElementById("emptyInscribeBtn");
+            if (emptyBtn) {
+                emptyBtn.addEventListener("click", () => openReviewModal());
+            }
+            return;
+        }
+
+        const votedIds = getVotedReviewIds();
+
+        reviewsGrid.innerHTML = filtered
+            .map((rev) => {
+                const initial = rev.reviewerName ? rev.reviewerName.trim().charAt(0).toUpperCase() : "S";
+                const isVoted = votedIds.includes(rev.id);
+                const avatarClass = rev.avatarColor === "blue" ? "avatar-blue" : rev.avatarColor === "green" ? "avatar-green" : "";
+
+                return `
+                    <article class="review-scroll-card" data-id="${escapeHtml(rev.id)}" id="review-${escapeHtml(rev.id)}">
+                        <div class="review-card-header">
+                            <div class="reviewer-meta">
+                                <div class="reviewer-avatar-stamp ${avatarClass}">${initial}</div>
+                                <div class="reviewer-info-wrap">
+                                    <span class="reviewer-name">${escapeHtml(rev.reviewerName)}</span>
+                                    <span class="reviewer-affiliation">${escapeHtml(rev.reviewerAffiliation || "Archive Reader")}</span>
+                                </div>
+                            </div>
+                            <time class="review-date">${escapeHtml(rev.date || "Archive Era")}</time>
+                        </div>
+
+                        <div class="review-stars-row">
+                            <span class="card-stars">${renderStars(rev.rating)}</span>
+                            <span class="book-tag-pill" title="${escapeHtml(rev.bookTitle)}">${escapeHtml(rev.bookTitle)}</span>
+                        </div>
+
+                        <h4 class="review-title">${escapeHtml(rev.title)}</h4>
+                        <p class="review-body">${escapeHtml(rev.content)}</p>
+
+                        <div class="review-card-footer">
+                            <div class="scroll-verified-badge">
+                                <span>📜</span>
+                                <span>Verified Reader Scroll</span>
+                            </div>
+                            <button class="helpful-btn ${isVoted ? "voted" : ""}" data-id="${escapeHtml(rev.id)}" title="Mark as Enlightening Scroll">
+                                <span>✨</span>
+                                <span class="helpful-label">${isVoted ? "Enlightened" : "Enlightening"}</span>
+                                <span class="helpful-num">(${Number(rev.helpfulCount || 0)})</span>
+                            </button>
+                        </div>
+                    </article>
+                `;
+            })
+            .join("");
+
+        // Attach helpful upvote listeners
+        document.querySelectorAll(".helpful-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const reviewId = btn.getAttribute("data-id");
+                handleHelpfulClick(reviewId, btn);
+            });
+        });
+    }
+
+    function handleHelpfulClick(reviewId, buttonElement) {
+        const voted = getVotedReviewIds();
+        if (voted.includes(reviewId)) {
+            showToast("You have already consecrated this scroll as enlightening!");
+            return;
+        }
+
+        const review = reviews.find((r) => r.id === reviewId);
+        if (review) {
+            review.helpfulCount = (Number(review.helpfulCount) || 0) + 1;
+            saveStoredReviews(reviews);
+            saveVotedReviewId(reviewId);
+
+            buttonElement.classList.add("voted");
+            const labelEl = buttonElement.querySelector(".helpful-label");
+            const numEl = buttonElement.querySelector(".helpful-num");
+            if (labelEl) labelEl.textContent = "Enlightened";
+            if (numEl) numEl.textContent = `(${review.helpfulCount})`;
+
+            showToast("✦ Scroll marked as enlightening in the ledger!");
+
+            // Sync with Firestore database
+            fetch(`/api/reviews/${encodeURIComponent(reviewId)}/helpful`, {
+                method: "POST"
+            }).catch((err) => {
+                console.warn("[Firestore] Could not sync endorsement to server:", err);
+            });
+        }
+    }
+
+    // =========================================================================
+    // 8. FILTER PILLS & SORT DROPDOWN
+    // =========================================================================
+    const filterPills = document.querySelectorAll(".filter-pill");
+    filterPills.forEach((pill) => {
+        pill.addEventListener("click", () => {
+            filterPills.forEach((p) => {
+                p.classList.remove("active");
+                p.setAttribute("aria-selected", "false");
+            });
+            pill.classList.add("active");
+            pill.setAttribute("aria-selected", "true");
+
+            currentFilter = pill.getAttribute("data-filter") || "all";
+            renderReviews();
+        });
+    });
+
+    const sortSelect = document.getElementById("sortReviewsSelect");
+    if (sortSelect) {
+        sortSelect.addEventListener("change", (e) => {
+            currentSort = e.target.value;
+            renderReviews();
+        });
+    }
+
+    // Direct series review links (e.g. from series cards)
+    document.querySelectorAll(".review-link").forEach((link) => {
+        link.addEventListener("click", (e) => {
+            const filterName = link.getAttribute("data-filter");
+            if (filterName) {
+                const targetKey = filterName.toLowerCase().includes("arjun") ? "arjun" : "files";
+                currentFilter = targetKey;
+                filterPills.forEach((p) => {
+                    const isTarget = p.getAttribute("data-filter") === targetKey;
+                    p.classList.toggle("active", isTarget);
+                    p.setAttribute("aria-selected", isTarget ? "true" : "false");
+                });
+                renderReviews();
+            }
+        });
+    });
+
+    // =========================================================================
+    // 9. MODAL: INSCRIBE REVIEW SCROLL
+    // =========================================================================
+    const reviewModal = document.getElementById("reviewModal");
+    const openReviewModalBtn = document.getElementById("openReviewModalBtn");
+    const closeReviewModalBtn = document.getElementById("closeReviewModalBtn");
+    const cancelReviewBtn = document.getElementById("cancelReviewBtn");
+    const reviewForm = document.getElementById("reviewForm");
+    const reviewBookSelect = document.getElementById("reviewBookSelect");
+    const starPicker = document.getElementById("starPicker");
+    const ratingValueInput = document.getElementById("ratingValueInput");
+    const ratingDesc = document.getElementById("ratingDesc");
+
+    const RATING_DESCRIPTIONS = {
+        1: "1 Star • Needs Enchantment",
+        2: "2 Stars • Fair Effort",
+        3: "3 Stars • Intriguing Lore",
+        4: "4 Stars • Riveting & Spellbinding",
+        5: "5 Stars • Exemplary Masterpiece"
+    };
+
+    function openReviewModal(preferredBookTitle = null) {
+        if (!reviewModal) return;
+        if (preferredBookTitle && reviewBookSelect) {
+            for (let i = 0; i < reviewBookSelect.options.length; i++) {
+                if (reviewBookSelect.options[i].value.toLowerCase().includes(preferredBookTitle.toLowerCase())) {
+                    reviewBookSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        reviewModal.removeAttribute("hidden");
+        document.body.style.overflow = "hidden";
+        const firstInput = reviewForm.querySelector("input, select");
+        if (firstInput) firstInput.focus();
+    }
+
+    function closeReviewModal() {
+        if (!reviewModal) return;
+        reviewModal.setAttribute("hidden", "");
+        document.body.style.overflow = "";
+    }
+
+    if (openReviewModalBtn) {
+        openReviewModalBtn.addEventListener("click", () => openReviewModal());
+    }
+
+    if (closeReviewModalBtn) {
+        closeReviewModalBtn.addEventListener("click", closeReviewModal);
+    }
+
+    if (cancelReviewBtn) {
+        cancelReviewBtn.addEventListener("click", closeReviewModal);
+    }
+
+    // Modal background click closes modal
+    if (reviewModal) {
+        reviewModal.addEventListener("click", (e) => {
+            if (e.target === reviewModal) {
+                closeReviewModal();
+            }
+        });
+    }
+
+    // Per-book review buttons in library cards
+    document.querySelectorAll(".book-review-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const bookTitle = btn.getAttribute("data-book-title") || "";
+            openReviewModal(bookTitle);
+        });
+    });
+
+    // Star rating picker
+    if (starPicker) {
+        const starButtons = starPicker.querySelectorAll(".star-pick-btn");
+
+        function updateStars(rating) {
+            ratingValueInput.value = rating;
+            starButtons.forEach((b) => {
+                const bVal = Number(b.getAttribute("data-rating"));
+                b.classList.toggle("active", bVal <= rating);
+            });
+            if (ratingDesc) {
+                ratingDesc.textContent = RATING_DESCRIPTIONS[rating] || `${rating} Stars`;
+            }
+        }
+
+        starButtons.forEach((btn) => {
+            btn.addEventListener("mouseenter", () => {
+                const hoverVal = Number(btn.getAttribute("data-rating"));
+                starButtons.forEach((b) => {
+                    const bVal = Number(b.getAttribute("data-rating"));
+                    b.classList.toggle("active", bVal <= hoverVal);
+                });
+            });
+
+            btn.addEventListener("click", () => {
+                const val = Number(btn.getAttribute("data-rating"));
+                updateStars(val);
+            });
+        });
+
+        starPicker.addEventListener("mouseleave", () => {
+            const currentVal = Number(ratingValueInput.value) || 5;
+            updateStars(currentVal);
+        });
+    }
+
+    // Review Form Submission
+    if (reviewForm) {
+        reviewForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const selectedBook = reviewBookSelect.value;
+            const reviewerName = document.getElementById("reviewerNameInput").value.trim();
+            const reviewerHouse = document.getElementById("reviewerHouseInput").value.trim() || "Archive Scholar";
+            const reviewTitle = document.getElementById("reviewTitleInput").value.trim();
+            const reviewContent = document.getElementById("reviewContentInput").value.trim();
+            const rating = Number(ratingValueInput.value) || 5;
+
+            if (!reviewerName || !reviewTitle || !reviewContent) {
+                showToast("Please complete all required fields before sealing the scroll.");
+                return;
+            }
+
+            const submitBtn = reviewForm.querySelector(".submit-scroll-btn");
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : "";
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="btn-wax">⚜</span> Inscribing Scroll...`;
+            }
+
+            // Derive category
+            let bookCat = "all";
+            if (selectedBook.toLowerCase().includes("arjun")) {
+                bookCat = "arjun";
+            } else if (selectedBook.toLowerCase().includes("files")) {
+                bookCat = "files";
+            }
+
+            // Pick random avatar seal color
+            const colors = ["crimson", "blue", "green"];
+            const avatarColor = colors[Math.floor(Math.random() * colors.length)];
+
+            const today = new Date();
+            const dateStr = today.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+            let newReview = {
+                id: "rev-" + Date.now(),
+                bookCategory: bookCat,
+                bookTitle: selectedBook,
+                reviewerName: reviewerName,
+                reviewerAffiliation: reviewerHouse,
+                avatarColor: avatarColor,
+                rating: rating,
+                date: dateStr,
+                timestamp: Date.now(),
+                title: reviewTitle,
+                content: reviewContent,
+                helpfulCount: 0,
+                verified: true
+            };
+
+            // Save to Firestore Database via /api/reviews
+            try {
+                const res = await fetch("/api/reviews", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        bookTitle: selectedBook,
+                        reviewerName,
+                        reviewerAffiliation: reviewerHouse,
+                        rating,
+                        title: reviewTitle,
+                        content: reviewContent,
+                        avatarColor
+                    })
+                });
+
+                if (res.ok) {
+                    const savedData = await res.json();
+                    if (savedData && savedData.id) {
+                        newReview = savedData;
+                    }
+                }
+            } catch (err) {
+                console.warn("[Firestore] Failed to persist to server, keeping local cache:", err);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+            }
+
+            reviews.unshift(newReview);
+            saveStoredReviews(reviews);
+
+            updateScoreboard();
+            renderReviews();
+
+            reviewForm.reset();
+            if (ratingValueInput) ratingValueInput.value = "5";
+            if (starPicker) {
+                starPicker.querySelectorAll(".star-pick-btn").forEach((b) => b.classList.add("active"));
+                if (ratingDesc) ratingDesc.textContent = RATING_DESCRIPTIONS[5];
+            }
+
+            closeReviewModal();
+            showToast("⚜ Your scroll has been inscribed in the Restricted Section!");
+
+            // Scroll smoothly to reviews section and highlight new card
+            const reviewsSection = document.getElementById("reviews");
+            if (reviewsSection) {
+                reviewsSection.scrollIntoView({ behavior: "smooth" });
+                setTimeout(() => {
+                    const newCard = document.getElementById(`review-${newReview.id}`);
+                    if (newCard) {
+                        newCard.style.outline = "2px solid var(--gold-bright)";
+                        newCard.style.boxShadow = "0 0 30px var(--gold-glow)";
+                        setTimeout(() => {
+                            newCard.style.transition = "outline 1s ease, box-shadow 1s ease";
+                            newCard.style.outline = "none";
+                            newCard.style.boxShadow = "";
+                        }, 2500);
+                    }
+                }, 600);
+            }
+        });
+    }
+
+    // =========================================================================
+    // 10. MODAL: BOOK EXCERPT & LORE PREVIEW
+    // =========================================================================
+    const bookModal = document.getElementById("bookModal");
+    const closeBookModalBtn = document.getElementById("closeBookModalBtn");
+    const bookModalContent = document.getElementById("bookModalContent");
+
+    function openBookExcerptModal(bookKey) {
+        if (!bookModal || !bookModalContent) return;
+        const data = BOOK_EXCERPTS[bookKey];
+        if (!data) return;
+
+        bookModalContent.innerHTML = `
+            <div class="excerpt-header">
+                <img src="${data.coverImg}" alt="${escapeHtml(data.title)}" class="excerpt-cover" onerror="this.src='images/logo.png'">
+                <div class="excerpt-header-info">
+                    <span class="excerpt-badge">${escapeHtml(data.badge)}</span>
+                    <h3 id="bookModalTitle">${escapeHtml(data.title)}</h3>
+                    <div class="score-stars">★★★★★ <span style="font-size: 13px; color: var(--gold-light); font-family: var(--font-heading); margin-left: 6px;">Archival Tome</span></div>
+                </div>
+            </div>
+
+            <p style="font-family: var(--font-heading); font-size: 15px; color: var(--gold-light); margin-top: 5px;">
+                ${escapeHtml(data.lead)}
+            </p>
+
+            <div class="excerpt-text">
+                ${data.excerpt.split("\n\n").map((p) => `<p style="margin-bottom: 12px;">${escapeHtml(p)}</p>`).join("")}
+            </div>
+
+            <div class="excerpt-actions">
+                ${
+                    data.primaryActionType === "pdf"
+                        ? `<a href="${data.pdfLink}" target="_blank" rel="noopener" class="magical-btn primary-btn">
+                            <span>📄</span> Declassify & Read PDF
+                           </a>`
+                        : `<button class="magical-btn primary-btn" id="excerptReadAction">
+                            <span>📜</span> Read Complete Lore
+                           </button>`
+                }
+                <button class="book-review-btn" id="excerptReviewAction" style="padding: 12px 18px; font-size: 13px;">
+                    <span>🪶</span> Inscribe Review
+                </button>
+            </div>
+        `;
+
+        bookModal.removeAttribute("hidden");
+        document.body.style.overflow = "hidden";
+
+        const excerptReviewAction = document.getElementById("excerptReviewAction");
+        if (excerptReviewAction) {
+            excerptReviewAction.addEventListener("click", () => {
+                closeBookExcerptModal();
+                openReviewModal(data.title);
+            });
+        }
+
+        const excerptReadAction = document.getElementById("excerptReadAction");
+        if (excerptReadAction) {
+            excerptReadAction.addEventListener("click", () => {
+                showToast("Full grimoire edition is undergoing final enchanted binding!");
+            });
+        }
+    }
+
+    function closeBookExcerptModal() {
+        if (!bookModal) return;
+        bookModal.setAttribute("hidden", "");
+        document.body.style.overflow = "";
+    }
+
+    if (closeBookModalBtn) {
+        closeBookModalBtn.addEventListener("click", closeBookExcerptModal);
+    }
+
+    if (bookModal) {
+        bookModal.addEventListener("click", (e) => {
+            if (e.target === bookModal) {
+                closeBookExcerptModal();
+            }
+        });
+    }
+
+    // Attach book preview buttons
+    document.querySelectorAll(".preview-tome-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const bookKey = btn.getAttribute("data-book");
+            openBookExcerptModal(bookKey);
+        });
+    });
+
+    document.querySelectorAll(".read-book-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const bookId = btn.getAttribute("data-book-id");
+            openBookExcerptModal(bookId || "arjun");
+        });
+    });
+
+    // =========================================================================
+    // 11. KEYBOARD NAVIGATION (ESCAPE TO CLOSE MODALS)
+    // =========================================================================
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            if (reviewModal && !reviewModal.hasAttribute("hidden")) {
+                closeReviewModal();
+            }
+            if (bookModal && !bookModal.hasAttribute("hidden")) {
+                closeBookExcerptModal();
+            }
         }
     });
-});
 
-const sections=document.querySelectorAll("section");
-const navLinks=document.querySelectorAll("nav a");
+    // =========================================================================
+    // 12. TOAST NOTIFICATIONS (MAGICAL ENCHANTMENT)
+    // =========================================================================
+    const toast = document.getElementById("magicalToast");
+    const toastMsg = document.getElementById("toastMessage");
+    let toastTimeout;
 
-window.addEventListener("scroll",()=>{
-    let current="";
-    sections.forEach((section)=>{
-        const sectionTop=section.offsetTop;
-        if(scrollY>=sectionTop-200){
-            current=section.getAttribute("id");
-        }
-    });
-    navLinks.forEach((link)=>{
-        link.classList.remove("active");
-        if(link.getAttribute("href")==="#" + current){
-            link.classList.add("active");
-        }
-    });
-});
+    function showToast(message) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = message;
+        toast.classList.add("show");
 
-const text="Stories Between Worlds";
-const typingText=document.getElementById("typing-text");
-let index=0;
-function typeText(){
-    if(index<text.length){
-        typingText.innerHTML+=text.charAt(index);
-        index++;
-        setTimeout(typeText,100);
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3600);
     }
-}
-typeText();
 
-
-// DRAGGABLE BOOK SLIDER
-
-const sliders=document.querySelectorAll(".books-slider");
-sliders.forEach((slider)=>{
-
-    let isDown=false;
-    let startX;
-    let scrollLeft;
-
-    slider.addEventListener("mousedown",(e)=>{
-        isDown=true;
-        startX=e.pageX-slider.offsetLeft;
-        scrollLeft=slider.scrollLeft;
-    });
-
-    slider.addEventListener("mouseleave",()=>{
-        isDown=false;
-    });
-
-    slider.addEventListener("mouseup",()=>{
-        isDown=false;
-    });
-
-    slider.addEventListener("mousemove",(e)=>{
-        if(!isDown)return;
-        e.preventDefault();
-        const x=e.pageX-slider.offsetLeft;
-        const walk=(x-startX)*2;
-        slider.scrollLeft=scrollLeft-walk;
-    });
-});
-const buttons=document.querySelectorAll(".view-books-btn");
-buttons.forEach((button)=>{
-    button.addEventListener("click",()=>{
-        const seriesCard=button.closest(".series-card");
-        const slider=seriesCard.querySelector(".books-slider");
-        slider.classList.toggle("show");
-    });
+    // Initial render and live fetch from Firestore Database
+    updateScoreboard();
+    renderReviews();
+    fetchReviewsFromDatabase();
 });

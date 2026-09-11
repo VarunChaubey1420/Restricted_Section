@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "Review": {
+      "title": "Review",
+      "description": "A book review scroll inscribed by a reader",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review"
+        },
+        "bookCategory": {
+          "type": "string",
+          "description": "Category identifier for the book (e.g. arjun or files)",
+          "enum": ["arjun", "files"]
+        },
+        "bookTitle": {
+          "type": "string",
+          "description": "Full title of the tome reviewed"
+        },
+        "reviewerName": {
+          "type": "string",
+          "description": "Name or pseudonym of the reviewer"
+        },
+        "reviewerAffiliation": {
+          "type": "string",
+          "description": "Hogwarts house or archival title of the reviewer"
+        },
+        "avatarColor": {
+          "type": "string",
+          "description": "Wax seal color for the reviewer's avatar stamp"
+        },
+        "rating": {
+          "type": "number",
+          "description": "Star rating from 1 to 5"
+        },
+        "date": {
+          "type": "string",
+          "description": "Formatted date string of inscription"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Epoch timestamp in milliseconds"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title or headline of the scroll review"
+        },
+        "content": {
+          "type": "string",
+          "description": "Detailed body content of the review"
+        },
+        "helpfulCount": {
+          "type": "number",
+          "description": "Count of enlightening endorsements received"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether the review is verified"
+        }
+      },
+      "required": ["bookTitle", "reviewerName", "rating", "title", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Collection of public reader review scrolls for books in the library"
+    }
+  }
+}

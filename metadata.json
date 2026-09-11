@@ -1,6 +1,6 @@
 {
-  "name": "Arcane Archives",
-  "description": "A modern digital library to explore original fantasy and psychological mystery stories, book collections, and archives.",
+  "name": "The Restricted Section",
+  "description": "An enchanted Hogwarts-inspired library of arcane tomes, forbidden lore, and genuine reader scroll reviews.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

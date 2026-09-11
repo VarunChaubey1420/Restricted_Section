@@ -4,128 +4,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A modern digital library to explore original fantasy and psychological mystery stories, book collections, and archives.">
-    <meta property="og:title" content="Arcane Archives">
-    <meta property="og:description" content="A modern digital library to explore original fantasy and psychological mystery stories, book collections, and archives.">
-    <title>Arcane Archives</title>
+    <meta name="description" content="An enchanted Hogwarts-inspired library of arcane tomes, forbidden lore, and genuine reader scroll reviews.">
+    <meta property="og:title" content="The Restricted Section">
+    <meta property="og:description" content="An enchanted Hogwarts-inspired library of arcane tomes, forbidden lore, and genuine reader scroll reviews.">
+    <title>The Restricted Section</title>
     <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=MedievalSharp&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="theme-hogwarts">
+
+    <!-- FLOATING CANDLES AMBIENCE LAYER (Subtle, strictly outside content & below navbar) -->
+    <div class="candle-chamber" id="candleChamber" aria-hidden="true">
+        <div class="floating-candle c1"><div class="flame"></div><div class="candle-stick"></div></div>
+        <div class="floating-candle c2"><div class="flame"></div><div class="candle-stick"></div></div>
+        <div class="floating-candle c3"><div class="flame"></div><div class="candle-stick"></div></div>
+    </div>
 
     <!-- NAVBAR -->
-    <nav>
-        <a href="#home" class="logo">
-            <img src="images/logo.png" alt="Arcane Archives Logo">
-            <span>Arcane Archives</span>
+    <nav id="mainNav">
+        <a href="#home" class="logo" id="navLogo">
+            <img src="images/arcane_crest.jpg" alt="Restricted Section Crest" class="crest-img" onerror="this.src='images/logo.png'">
+            <div class="logo-text">
+                <span class="logo-title">The Restricted Section</span>
+                <span class="logo-tagline">Hogwarts Arcane Library</span>
+            </div>
         </a>
 
-        <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#books">Books</a></li>
-            <li><a href="#about">About</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#home" class="active">Great Hall</a></li>
+                <li><a href="#books">Library Stacks</a></li>
+                <li><a href="#reviews">Reader Scrolls</a></li>
+                <li><a href="#about">The Scribe</a></li>
+            </ul>
+
+            <!-- LUMOS / NOX AMBIENT TOGGLE -->
+            <button class="lumos-toggle" id="lumosBtn" title="Toggle Floating Candles (Lumos / Nox)" aria-label="Toggle Candlelight">
+                <span class="lumos-wand">🪄</span>
+                <span class="lumos-text">Lumos</span>
+            </button>
+        </div>
     </nav>
 
     <!-- HERO SECTION -->
     <section class="hero" id="home">
-        <h2 id="typing-text"></h2>
-        <p>
-            Fantasy, mystery and hidden universes.
-        </p>
-        <button>
-            Explore Books
-        </button>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="gothic-crest-header">
+                <span class="crest-ornament">✦ ── ⚜ ── ✦</span>
+                <span class="hero-eyebrow">Hogwarts Arcane Library</span>
+            </div>
+            
+            <h1 class="hero-headline">
+                <span class="hero-main-title">The Restricted Section</span>
+                <span class="hero-typing-line"><span id="typing-text"></span><span class="quill-cursor">|</span></span>
+            </h1>
+
+            <p class="hero-subtext">
+                Whispers of ancient relics, psychological labyrinths, and interconnected universes waiting to be uncovered in the stacks.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#books" class="magical-btn primary-btn" id="heroExploreBtn">
+                    <span class="btn-sparkle">✧</span> Enter the Stacks <span class="btn-sparkle">✧</span>
+                </a>
+                <a href="#reviews" class="magical-btn secondary-btn" id="heroReviewsBtn">
+                    <span class="btn-feather">🪶</span> Consult Reader Scrolls
+                </a>
+            </div>
+
+            <div class="tome-quick-stats">
+                <div class="stat-pill">
+                    <span class="stat-icon">📜</span>
+                    <span class="stat-value">2 Universes</span>
+                </div>
+                <div class="stat-divider">♦</div>
+                <div class="stat-pill">
+                    <span class="stat-icon">⭐</span>
+                    <span class="stat-value">4.9 Reader Rating</span>
+                </div>
+                <div class="stat-divider">♦</div>
+                <div class="stat-pill">
+                    <span class="stat-icon">🕯️</span>
+                    <span class="stat-value">Forbidden Lore & Files</span>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- BOOK SECTION -->
+    <!-- BOOK SECTION: THE RESTRICTED SECTION -->
     <section class="books" id="books">
-        <h2>Archives</h2>
+        <div class="section-title-wrap">
+            <span class="ornament-top">⚜ ── ✦ ── ⚜</span>
+            <h2>The Restricted Section</h2>
+            <p class="section-subtitle">Bound grimoires and classified dossiers cataloged by author Varun Chaubey</p>
+        </div>
 
-        <div class="series-card">
+        <!-- SERIES 1: ARJUN'S ODYSSEY -->
+        <div class="series-card grimoire-series" id="seriesArjun">
+            <div class="series-ribbon">Volume I • High Fantasy</div>
             <div class="series-content">
-                <h3>Arjun's Odyssey</h3>
-                <p>
-                    A fantasy adventure series across universes,
-                    relics and hidden powers.
-                </p>
-                <button class="view-books-btn">
-                    View Books
-                </button>
-            </div>
-            <!-- HORIZONTAL BOOK LIST -->
-            <div class="books-slider">
-                <div class="mini-book">
-                    <img src="images/arjun1.png">
-                    <h4>Book 1</h4>
-                    <p>Mysteries Of Navrang Van</p>
-                    <a href="books/Arjun's Odyssey.pdf" target="_blank">Read Book</a>
+                <div class="series-header">
+                    <div class="series-title-block">
+                        <span class="series-badge">✦ Mythic Relics Universe</span>
+                        <h3>Arjun's Odyssey</h3>
+                    </div>
+                    <div class="series-rating-tag">
+                        <span class="gold-stars">★★★★★</span>
+                        <span class="rating-num" id="seriesRatingArjun">5.0</span>
+                        <a href="#reviews" class="review-link" id="seriesCountArjun" data-filter="Arjun's Odyssey">(0 Scrolls)</a>
+                    </div>
                 </div>
-                <div class="mini-book coming-soon">
-                    <h4>More Coming Soon...</h4>
-                    <p>
-                        New adventures from this universe
-                        will arrive soon.
+                <p>
+                    A mythic fantasy adventure series journeying through mystical astral dimensions, ancient temple relics, and dormant cosmic celestial powers bound in ancient forgotten scriptures.
+                </p>
+                <div class="series-cta-row">
+                    <button class="view-books-btn" data-target="sliderArjun">
+                        <span class="btn-text">Inspect Stacks</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+                    <button class="preview-tome-btn" data-book="arjun">
+                        <span>📜 Lore Excerpt</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- HORIZONTAL BOOK SLIDER -->
+            <div class="books-slider show" id="sliderArjun">
+                <div class="mini-book tome-card">
+                    <div class="book-corner-decor tl"></div>
+                    <div class="book-corner-decor tr"></div>
+                    <div class="book-spine-accent"></div>
+                    <div class="book-cover-wrap">
+                        <img src="images/arjun1.png" alt="Mysteries Of Navrang Van Book Cover" loading="lazy">
+                        <span class="book-status-seal">Tome I</span>
+                    </div>
+                    <div class="mini-book-body">
+                        <div class="book-rating-mini">★ 4.9 • Mythic Fantasy</div>
+                        <h4>Mysteries Of Navrang Van</h4>
+                        <p>Lost within a shifting dimensional sanctuary where reality bends and relics wake.</p>
+                        <div class="book-action-row">
+                            <button class="read-book-btn" data-book-id="arjun">
+                                <span>Read Grimoire</span>
+                            </button>
+                            <button class="book-review-btn" data-book-title="Arjun's Odyssey: Mysteries Of Navrang Van" title="View or Add Review">
+                                <span>🪶 Reviews</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mini-book coming-soon parchment-coming-soon">
+                    <div class="wax-seal-badge">
+                        <span class="wax-seal-inner">✦</span>
+                    </div>
+                    <h4>Tome II • Forthcoming</h4>
+                    <p class="tome-title-future">The Serpent's Astral Relic</p>
+                    <p class="tome-desc-future">
+                        The scribes are currently enchanting the next chapter of this interconnected universe.
                     </p>
+                    <span class="sealed-status">Locked with Vault Spell</span>
                 </div>
             </div>
         </div>
 
-        <div class="series-card">
+        <!-- SERIES 2: THE FILES THEY BURIED -->
+        <div class="series-card dossier-series" id="seriesFiles">
+            <div class="series-ribbon dossier-ribbon">Volume II • Psychological Mystery</div>
             <div class="series-content">
-                <h3>The Files They Buried</h3>
-                <p>
-                    A psychological mystery series uncovering secrets,
-                    hypnosis and hidden truths buried beneath reality.
-                </p>
-                <button class="view-books-btn">
-                    Access Files
-                </button>
-            </div>
-            <!-- HORIZONTAL BOOK LIST -->
-            <div class="books-slider">
-                <div class="mini-book">
-                    <img src="images/files1.png">
-                    <h4>Book 1</h4>
-                    <p>The Case That Stayed</p>
-                    <a href="books/Files They Buried.pdf" target="_blank">Open File</a>
+                <div class="series-header">
+                    <div class="series-title-block">
+                        <span class="series-badge dossier-badge">✦ Department of Mysteries Dossier</span>
+                        <h3>The Files They Buried</h3>
+                    </div>
+                    <div class="series-rating-tag">
+                        <span class="gold-stars">★★★★★</span>
+                        <span class="rating-num" id="seriesRatingFiles">5.0</span>
+                        <a href="#reviews" class="review-link" id="seriesCountFiles" data-filter="The Files They Buried">(0 Scrolls)</a>
+                    </div>
                 </div>
-                <div class="mini-book coming-soon">
-                    <h4>More Cases Coming Soon...</h4>
-                    <p>
-                        New files and mysteries
-        will be         revealed soon.
+                <p>
+                    A dark, spellbinding psychological mystery series uncovering suppressed hypnotic transcripts, classified cabinet dossiers, and reality-altering truths that powerful institutions buried.
+                </p>
+                <div class="series-cta-row">
+                    <button class="view-books-btn" data-target="sliderFiles">
+                        <span class="btn-text">Access Dossiers</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+                    <button class="preview-tome-btn" data-book="files">
+                        <span>🗂️ Case Briefing</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- HORIZONTAL BOOK SLIDER -->
+            <div class="books-slider show" id="sliderFiles">
+                <div class="mini-book tome-card dossier-tome">
+                    <div class="book-corner-decor tl"></div>
+                    <div class="book-corner-decor tr"></div>
+                    <div class="book-spine-accent"></div>
+                    <div class="book-cover-wrap">
+                        <img src="images/files1.png" alt="The Case That Stayed Book Cover" loading="lazy">
+                        <span class="book-status-seal red-seal">Case 01</span>
+                    </div>
+                    <div class="mini-book-body">
+                        <div class="book-rating-mini">★ 4.8 • Psychological Mystery</div>
+                        <h4>The Case That Stayed</h4>
+                        <p>A locked confession, an unbending investigator, and memories that refuse to stay dead.</p>
+                        <div class="book-action-row">
+                            <a href="books/Files They Buried.pdf" target="_blank" rel="noopener" class="read-pdf-btn">
+                                <span>Declassify PDF</span>
+                            </a>
+                            <button class="book-review-btn" data-book-title="The Files They Buried: The Case That Stayed" title="View or Add Review">
+                                <span>🪶 Reviews</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mini-book coming-soon parchment-coming-soon">
+                    <div class="wax-seal-badge red-wax">
+                        <span class="wax-seal-inner">CONFIDENTIAL</span>
+                    </div>
+                    <h4>Case 02 • Classified</h4>
+                    <p class="tome-title-future">The Echo Chamber Protocol</p>
+                    <p class="tome-desc-future">
+                        Under lock in the subterranean ministry vaults. More cases will surface soon.
                     </p>
+                    <span class="sealed-status">Classified Level VII</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ABOUT -->
+    <!-- REVIEWS SECTION: THE SCRIBES' CHRONICLES -->
+    <section class="reviews" id="reviews">
+        <div class="section-title-wrap">
+            <span class="ornament-top">📜 ── ✦ ── 📜</span>
+            <h2>The Scribes' Chronicles & Reviews</h2>
+            <p class="section-subtitle">
+                Annotations, critiques, and impressions inscribed by readers and scholars across Hogwarts and beyond
+            </p>
+        </div>
+
+        <!-- REVIEWS SUMMARY ARCH & BANNER -->
+        <div class="reviews-scoreboard">
+            <div class="score-main">
+                <div class="score-large">4.9</div>
+                <div class="score-stars">★★★★★</div>
+                <div class="score-sub" id="totalReviewsCount">Based on 49 Inscribed Scrolls</div>
+            </div>
+
+            <div class="score-breakdown">
+                <div class="rating-bar-row">
+                    <span class="bar-label">5 Stars (Exemplary)</span>
+                    <div class="bar-track"><div class="bar-fill" style="width: 90%;"></div></div>
+                    <span class="bar-pct">90%</span>
+                </div>
+                <div class="rating-bar-row">
+                    <span class="bar-label">4 Stars (Riveting)</span>
+                    <div class="bar-track"><div class="bar-fill" style="width: 10%;"></div></div>
+                    <span class="bar-pct">10%</span>
+                </div>
+                <div class="rating-bar-row">
+                    <span class="bar-label">3 Stars (Intriguing)</span>
+                    <div class="bar-track"><div class="bar-fill" style="width: 0%;"></div></div>
+                    <span class="bar-pct">0%</span>
+                </div>
+            </div>
+
+            <div class="score-action">
+                <button class="inscribe-review-btn" id="openReviewModalBtn">
+                    <span class="quill-icon">🪶</span>
+                    <span class="btn-text">Inscribe Your Scroll</span>
+                    <span class="wax-stamp-mini">✦</span>
+                </button>
+                <p class="scribe-hint">Take up your quill and leave your review in the archives.</p>
+            </div>
+        </div>
+
+        <!-- REVIEW CONTROLS (FILTER & SORT) -->
+        <div class="review-filter-bar">
+            <div class="filter-pills" id="reviewFilterPills" role="tablist">
+                <button class="filter-pill active" data-filter="all" role="tab" aria-selected="true">
+                    All Scrolls (<span id="countAll">0</span>)
+                </button>
+                <button class="filter-pill" data-filter="arjun" role="tab" aria-selected="false">
+                    Arjun's Odyssey (<span id="countArjun">0</span>)
+                </button>
+                <button class="filter-pill" data-filter="files" role="tab" aria-selected="false">
+                    The Files They Buried (<span id="countFiles">0</span>)
+                </button>
+            </div>
+
+            <div class="sort-selector">
+                <label for="sortReviewsSelect">Sort Scrolls:</label>
+                <select id="sortReviewsSelect">
+                    <option value="highest">Highest Rating (★ 5-1)</option>
+                    <option value="newest">Most Recent</option>
+                    <option value="helpful">Most Enlightening (Helpful)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- REVIEWS GRID CONTAINER -->
+        <div class="reviews-grid" id="reviewsGrid">
+            <!-- Dynamically populated by script.js -->
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
     <section class="about" id="about">
-        <h2>About Author</h2>
-        <p>
-            Hi, I'm Varun — a storyteller passionate about creating fantasy,
-            mystery and interconnected universes. My stories are filled with
-            hidden relics, secrets, powerful characters and adventures that
-            connect across different worlds.
-        </p>
-        <br>
-        <p>
-            From ancient mysteries to modern conspiracies, every book is part
-            of a larger universe waiting to be explored.
-        </p>
+        <div class="about-parchment-frame">
+            <div class="wax-seal-corner">
+                <img src="images/arcane_crest.jpg" alt="Author Seal" onerror="this.src='images/logo.png'">
+            </div>
+            
+            <span class="ornament-top">⚜ ── ✦ ── ⚜</span>
+            <h2>Keeper of the Vaults: Varun Chaubey</h2>
+            <div class="author-title">Architect of Interconnected Universes & Arcane Mysteries</div>
+
+            <div class="about-content">
+                <p>
+                    Greetings, fellow traveler of the stacks. I am <strong>Varun</strong> — a storyteller and world-builder fascinated by the intersection of ancient mythology, forbidden relics, and human psychological depth.
+                </p>
+                <div class="quote-block">
+                    <span class="quote-mark">“</span>
+                    Every locked dossier, every forgotten temple, and every universe in these archives is bound to a greater cosmic tapestry. You are never reading just a story; you are unlocking a door.
+                    <span class="quote-mark">”</span>
+                </div>
+                <p>
+                    From ancient sanctuaries where cosmic relics awaken, to smoke-filled interrogation rooms buried under psychological secrecy, each book invites readers to look beyond the surface of reality and question what has been forgotten.
+                </p>
+            </div>
+
+            <div class="about-signature-block">
+                <span class="signature-text">Varun Chaubey</span>
+                <span class="signature-caption">Inscribed in The Restricted Section</span>
+            </div>
+        </div>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <p>
-            © Arcane Archives
-        </p>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <img src="images/arcane_crest.jpg" alt="Restricted Section Crest" class="footer-crest" onerror="this.src='images/logo.png'">
+                <span class="footer-title">The Restricted Section</span>
+                <p class="footer-motto">“Where ancient lore meets the modern seeker • Mischief Managed”</p>
+            </div>
+            <div class="footer-nav">
+                <a href="#home">Great Hall</a>
+                <a href="#books">Library Stacks</a>
+                <a href="#reviews">Reader Scrolls</a>
+                <a href="#about">The Scribe</a>
+            </div>
+            <p class="footer-copy">
+                © The Restricted Section • Hogwarts Arcane Library. All scrolls, relics, and universe lore reserved.
+            </p>
+        </div>
     </footer>
+
+    <!-- MODAL: INSCRIBE REVIEW SCROLL -->
+    <div class="modal-backdrop" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+        <div class="parchment-modal-box">
+            <button class="modal-close-btn" id="closeReviewModalBtn" aria-label="Close Scroll Form">&times;</button>
+            
+            <div class="modal-header">
+                <span class="ornament-top">🪶 ── ✦ ── 🪶</span>
+                <h3 id="modalTitle">Inscribe Your Review Scroll</h3>
+                <p class="modal-subtitle">Your words will be permanently recorded in the Restricted Section archives.</p>
+            </div>
+
+            <form id="reviewForm" class="parchment-form">
+                <div class="form-group">
+                    <label for="reviewBookSelect">Choose Book / Tome *</label>
+                    <select id="reviewBookSelect" required>
+                        <option value="Arjun's Odyssey: Mysteries Of Navrang Van">Arjun's Odyssey: Mysteries Of Navrang Van</option>
+                        <option value="The Files They Buried: The Case That Stayed">The Files They Buried: The Case That Stayed</option>
+                        <option value="The Restricted Section (General Universe)">The Restricted Section (General Collection)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Rating (Enchant Stars) *</label>
+                    <div class="star-rating-picker" id="starPicker">
+                        <button type="button" class="star-pick-btn active" data-rating="1" title="1 Star">★</button>
+                        <button type="button" class="star-pick-btn active" data-rating="2" title="2 Stars">★</button>
+                        <button type="button" class="star-pick-btn active" data-rating="3" title="3 Stars">★</button>
+                        <button type="button" class="star-pick-btn active" data-rating="4" title="4 Stars">★</button>
+                        <button type="button" class="star-pick-btn active" data-rating="5" title="5 Stars">★</button>
+                        <span class="rating-label-text" id="ratingDesc">5 Stars • Exemplary Masterpiece</span>
+                    </div>
+                    <input type="hidden" id="ratingValueInput" value="5">
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="reviewerNameInput">Your Name / Pseudonym *</label>
+                        <input type="text" id="reviewerNameInput" placeholder="e.g., Scholar Ronald or Maya Lin" required maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewerHouseInput">Title / House / Guild</label>
+                        <input type="text" id="reviewerHouseInput" placeholder="e.g., Ravenclaw Bibliophile, Detective" maxlength="40">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewTitleInput">Review Headline *</label>
+                    <input type="text" id="reviewTitleInput" placeholder="e.g., A mesmerizing blend of myth and mystery!" required maxlength="90">
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewContentInput">Scroll Inscription (Review Text) *</label>
+                    <textarea id="reviewContentInput" rows="5" placeholder="Share your thoughts on the world-building, characters, plot twists, and atmosphere..." required minlength="10" maxlength="1500"></textarea>
+                </div>
+
+                <div class="modal-form-actions">
+                    <button type="button" class="btn-cancel" id="cancelReviewBtn">Cancel</button>
+                    <button type="submit" class="magical-btn primary-btn submit-scroll-btn">
+                        <span class="btn-wax">⚜</span> Inscribe Scroll to Archives
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: BOOK EXCERPT / READER MODAL -->
+    <div class="modal-backdrop" id="bookModal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle" hidden>
+        <div class="parchment-modal-box book-excerpt-box">
+            <button class="modal-close-btn" id="closeBookModalBtn" aria-label="Close Preview">&times;</button>
+            <div class="book-modal-content" id="bookModalContent">
+                <!-- Injected via script.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div class="magical-toast" id="magicalToast" role="status" aria-live="polite">
+        <span class="toast-wax">✦</span>
+        <span class="toast-message" id="toastMessage">Scroll successfully inscribed into the Archives!</span>
+    </div>
 
     <script src="script.js"></script>
 </body>

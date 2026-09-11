@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /reviews/{reviewId} {
+      // Allow all readers to view inscribed scrolls
+      allow read: if true;
+      
+      // Allow readers to submit honest reviews
+      allow create: if request.resource.data.bookTitle is string
+                    && request.resource.data.reviewerName is string
+                    && request.resource.data.rating is number
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.title is string
+                    && request.resource.data.content is string;
+
+      // Allow incrementing helpful endorsements
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['helpfulCount']);
+
+      // Allow deletion for cleanup or management
+      allow delete: if true;
+    }
+  }
+}

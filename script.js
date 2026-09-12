@@ -13,35 +13,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const BOOK_EXCERPTS = {
         arjun: {
-            title: "Arjun's Odyssey: Mysteries Of Navrang Van",
-            badge: "Mythic Relics Universe • Tome I",
+            title: "Arjun’s Odyssey: Mysteries of Navrang Van",
+            badge: "Arjun’s Odyssey • Book 1 • Reading Age 11+",
+            author: "Varun Chaubey",
+            series: "Arjun’s Odyssey",
+            bookNum: "Book 1",
+            genre: "Fantasy • Adventure • Mystery",
+            readingAge: "11+",
             coverImg: "images/arjun1.png",
-            lead: "Prologue: When the Stone Relics Awoke in the Astral Mist",
-            excerpt: `The mist of Navrang Van did not obey the winds of the mundane world. It coiled between the banyan roots like living silver, whispering fragments of forgotten chants in a language Arjun had only heard in fever dreams.
+            lead: "Short Description: An ancient treasure map, a mysterious locket, and the mythical forest of Navrang Van.",
+            excerpt: `Arjun’s Odyssey: Mysteries of Navrang Van follows Arjun Singh and his adventurous elder brother Vikram as they embark on their first great journey after discovering an ancient treasure map and a mysterious locket.
 
-His hand touched the weathered sandstone monolith. The glyphs—carved before kings walked the plains—blazed with a sudden, amber resonance. The forest sighed around him, trees trembling not from storm, but from memory.
+Their search leads them into Navrang Van, a magical forest filled with strange plants, mythical creatures, dangerous challenges, and forgotten secrets. Along the way, they encounter a mysterious man, the serpent Vasuki, the dragon guardians Satyendra and Mithyendra, and other unexpected dangers.
 
-"Step forward, seeker," a low voice echoed from within the stones, vibrating in the marrow of his bones. "The threshold between worlds does not open for the cautious."
-
-Arjun tightened his grip on his satchel. The relic inside pulsed with warmth, answering the beacon of Navrang Van. There was no turning back now.`,
+What begins as a search for treasure soon becomes something much bigger, revealing that their adventure is only the beginning of a much greater journey.`,
             primaryActionText: "Inquire for Full Grimoire",
             primaryActionType: "review",
             secondaryActionText: "Inscribe Scroll Review"
         },
         files: {
-            title: "The Files They Buried: The Case That Stayed",
-            badge: "Department of Mysteries Dossier • Case 01",
+            title: "Files They Buried: The Case That Stayed",
+            badge: "Files They Buried • Psychological Crime Thriller",
+            author: "Varun Chaubey",
+            genre: "Psychological Crime Thriller",
             coverImg: "images/files1.png",
-            lead: "Declassified Confidential Dossier • Audio Log 04-B",
-            excerpt: `[TRANSCRIPT BEGINS - CLASSIFIED LEVEL V]
+            lead: "Some cases get closed. This one stayed.",
+            excerpt: `A psychological crime thriller following Kabir Verma, a young police investigator, and his partner Vikram Chauhan as they investigate a series of deaths initially ruled as suicides.
 
-INVESTIGATOR: "State your name for the magnetic wire, please."
-SUBJECT: [Ten seconds of unbroken silence, followed by the sound of fingers tapping a rhythmic cadence on zinc table.]
-INVESTIGATOR: "The records show you were on the perimeter fence at 02:40 hours. Yet the biometric registry at Sector 9 has your signature timestamped at exactly the same minute. Who walked through the gate, Arthur?"
-SUBJECT: "You assume the person who walked out was the same one who walked in. You still believe memory is a fixed room, Inspector. Let me show you what happens when someone takes down the walls."
+Three victims.
+Identical crime scenes.
+A missing fingernail from the same finger.
 
-[STATIC SURGE - INEXPLICABLE FREQUENCY INTERFERENCE DETECTED - RECORDING TERMINATES]`,
-            primaryActionText: "Open PDF Dossier",
+As Kabir digs deeper, he discovers Dr. Sameer Khanna, a psychologist who has a disturbing connection to the victims. What begins as a routine investigation slowly turns into a psychological battle of manipulation, truth, and guilt.
+
+The case is eventually closed—but not everything about it is resolved.
+Some cases get closed. This one stayed.`,
+            primaryActionText: "Declassify & Read PDF",
             primaryActionType: "pdf",
             pdfLink: "books/Files They Buried.pdf",
             secondaryActionText: "Inscribe Case Review"
@@ -182,10 +189,30 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
     handleTyping();
 
     // =========================================================================
-    // 3. LUMOS / NOX CANDLE TOGGLE
+    // 3. LUMOS / NOX CANDLE TOGGLE & SCROLL FADE
     // =========================================================================
     const lumosBtn = document.getElementById("lumosBtn");
     const candleChamber = document.getElementById("candleChamber");
+
+    function updateCandleScrollFade() {
+        if (!candleChamber) return;
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        // Fade out candles smoothly as user scrolls down the page
+        const fadeDistance = 420;
+        const scrollProgress = Math.min(1, Math.max(0, scrollY / fadeDistance));
+        const isNox = document.body.classList.contains("nox-mode");
+        const baseOpacity = isNox ? 0.15 : 1.0;
+        const currentOpacity = Math.max(0, baseOpacity * (1 - scrollProgress));
+
+        candleChamber.style.opacity = currentOpacity.toFixed(3);
+        candleChamber.style.transform = `translateY(-${(scrollProgress * 30).toFixed(1)}px)`;
+
+        if (currentOpacity <= 0.01) {
+            candleChamber.style.visibility = "hidden";
+        } else {
+            candleChamber.style.visibility = "visible";
+        }
+    }
 
     function setLumosState(isNox) {
         if (isNox) {
@@ -203,6 +230,7 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
             }
             localStorage.setItem("arcane_candle_mode", "lumos");
         }
+        updateCandleScrollFade();
     }
 
     const savedCandleMode = localStorage.getItem("arcane_candle_mode") || "lumos";
@@ -217,23 +245,32 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
     }
 
     // =========================================================================
-    // 4. NAVBAR SCROLL & ACTIVE LINK HIGHLIGHTING
+    // 4. NAVBAR SCROLL & ACTIVE LINK HIGHLIGHTING & CANDLE DISAPPEAR
     // =========================================================================
     const navbar = document.getElementById("mainNav");
     const navLinks = document.querySelectorAll(".nav-links a");
     const sections = document.querySelectorAll("section");
 
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 40) {
+    let scrollRafScheduled = false;
+
+    function handleScrollUpdates() {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+
+        // Navbar scrolled state
+        if (scrollY > 40) {
             navbar.classList.add("scrolled");
         } else {
             navbar.classList.remove("scrolled");
         }
 
+        // Candles disappear slowly when scrolling down
+        updateCandleScrollFade();
+
+        // Active link highlighting
         let currentId = "";
         sections.forEach((section) => {
             const sectionTop = section.offsetTop - 140;
-            if (window.scrollY >= sectionTop) {
+            if (scrollY >= sectionTop) {
                 currentId = section.getAttribute("id");
             }
         });
@@ -244,7 +281,19 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
                 link.classList.add("active");
             }
         });
-    });
+
+        scrollRafScheduled = false;
+    }
+
+    window.addEventListener("scroll", () => {
+        if (!scrollRafScheduled) {
+            window.requestAnimationFrame(handleScrollUpdates);
+            scrollRafScheduled = true;
+        }
+    }, { passive: true });
+
+    // Initial check on load
+    updateCandleScrollFade();
 
     // =========================================================================
     // 5. BOOK SLIDERS (INSPECT / COLLAPSE & DRAG TO SCROLL)
@@ -830,7 +879,11 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
                 <div class="excerpt-header-info">
                     <span class="excerpt-badge">${escapeHtml(data.badge)}</span>
                     <h3 id="bookModalTitle">${escapeHtml(data.title)}</h3>
-                    <div class="score-stars">★★★★★ <span style="font-size: 13px; color: var(--gold-light); font-family: var(--font-heading); margin-left: 6px;">Archival Tome</span></div>
+                    <div class="excerpt-meta-tags">
+                        <span class="meta-tag">Author: ${escapeHtml(data.author || "Varun Chaubey")}</span>
+                        ${data.genre ? `<span class="meta-tag">Genre: ${escapeHtml(data.genre)}</span>` : ""}
+                        ${data.readingAge ? `<span class="meta-tag">Reading Age: ${escapeHtml(data.readingAge)}</span>` : ""}
+                    </div>
                 </div>
             </div>
 
@@ -839,7 +892,7 @@ SUBJECT: "You assume the person who walked out was the same one who walked in. Y
             </p>
 
             <div class="excerpt-text">
-                ${data.excerpt.split("\n\n").map((p) => `<p style="margin-bottom: 12px;">${escapeHtml(p)}</p>`).join("")}
+                ${data.excerpt.split("\n\n").map((p) => `<p style="margin-bottom: 12px; line-height: 1.6;">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`).join("")}
             </div>
 
             <div class="excerpt-actions">

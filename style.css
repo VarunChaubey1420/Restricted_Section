@@ -98,7 +98,8 @@ body.theme-hogwarts {
     pointer-events: none;
     z-index: 25;
     overflow: hidden;
-    transition: opacity 1s ease;
+    will-change: opacity, transform;
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 
 /* ==========================================================================
@@ -1931,6 +1932,24 @@ footer {
     letter-spacing: 1px;
 }
 
+.excerpt-meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.meta-tag {
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    color: var(--gold-light);
+    font-family: var(--font-heading);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
 .excerpt-text {
     font-size: 17px;
     color: var(--text-muted);
@@ -1993,6 +2012,11 @@ footer {
 /* ==========================================================================
    RESPONSIVE DESIGN (TABLET & MOBILE)
    ========================================================================== */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 @media (max-width: 992px) {
     .reviews-scoreboard {
         grid-template-columns: 1fr;
@@ -2013,60 +2037,486 @@ footer {
 }
 
 @media (max-width: 768px) {
+    /* FLOATING CANDLES ON MOBILE */
+    .c2 { display: none; }
+    .candle-stick { height: 38px; width: 8px; }
+    .flame { width: 6px; height: 13px; }
+
+    /* NAVBAR */
     nav {
-        padding: 14px 20px;
+        padding: 12px 16px;
+    }
+    nav.scrolled {
+        padding: 10px 16px;
     }
     .nav-links {
-        display: none; /* Accessible in mobile via clean layout */
+        display: none;
+    }
+    .logo {
+        gap: 10px;
+    }
+    .crest-img {
+        width: 38px;
+        height: 38px;
     }
     .logo-title {
-        font-size: 18px;
+        font-size: 17px;
+        letter-spacing: 1px;
     }
     .logo-tagline {
         font-size: 10px;
+        letter-spacing: 1px;
     }
+    .lumos-toggle {
+        padding: 6px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    /* HERO */
     .hero {
-        padding: 70px 16px;
-        min-height: 85vh;
+        padding: 48px 16px 40px 16px;
+        min-height: auto;
+    }
+    .gothic-crest-header {
+        margin-bottom: 14px;
+    }
+    .crest-ornament {
+        font-size: 14px;
+        letter-spacing: 2px;
+    }
+    .hero-eyebrow {
+        font-size: 12px;
+        letter-spacing: 2px;
     }
     .hero-headline {
-        font-size: 34px;
-        min-height: 90px;
+        margin-bottom: 14px;
+        min-height: auto;
+    }
+    .hero-main-title {
+        font-size: 32px;
+        line-height: 1.18;
+        margin-bottom: 4px;
+    }
+    .hero-typing-line {
+        font-size: 17px;
+        min-height: 24px;
+        letter-spacing: 1px;
     }
     .hero-subtext {
-        font-size: 18px;
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 24px;
     }
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .magical-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 46px;
+        box-sizing: border-box;
+    }
+    .tome-quick-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 12px;
+        padding: 8px 16px;
+        border-radius: 18px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .stat-divider {
+        display: none; /* Removed dangling non-essential divider on mobile */
+    }
+    .stat-pill {
+        font-size: 12px;
+        gap: 5px;
+    }
+
+    /* SECTIONS */
     .books, .reviews, .about {
-        padding: 60px 18px;
+        padding: 45px 14px;
+    }
+    .section-title-wrap {
+        margin-bottom: 30px;
+    }
+    .ornament-top {
+        font-size: 14px;
+        letter-spacing: 3px;
+        margin-bottom: 6px;
     }
     .books h2, .reviews h2, .about h2 {
-        font-size: 32px;
+        font-size: 28px;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+    .section-subtitle {
+        font-size: 15px;
+        line-height: 1.5;
+        padding: 0 8px;
+    }
+
+    /* SERIES CARDS */
+    .series-card {
+        margin-bottom: 35px;
+        border-radius: 12px;
+    }
+    .series-ribbon {
+        position: static;
+        display: inline-block;
+        margin: 0 0 14px 0;
+        border-radius: 4px;
+        padding: 5px 12px;
+        font-size: 11px;
+        letter-spacing: 0.8px;
+        width: fit-content;
     }
     .series-content {
-        padding: 24px 20px;
+        padding: 20px 16px 18px 16px;
     }
+    .series-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    .series-badge {
+        font-size: 11px;
+        line-height: 1.4;
+    }
+    .series-title-block h3 {
+        font-size: 22px;
+        line-height: 1.25;
+    }
+    .series-rating-tag {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    .series-content p {
+        font-size: 15px;
+        line-height: 1.55;
+        margin-bottom: 18px;
+    }
+    .series-cta-row {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    .view-books-btn,
+    .preview-tome-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+
+    /* BOOK SLIDERS */
     .books-slider {
-        padding: 15px 20px 25px 20px;
+        padding: 14px 14px 20px 14px;
+        gap: 14px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
     }
     .mini-book {
-        min-width: 230px;
+        scroll-snap-align: start;
+        width: 240px;
+        min-width: 240px;
+        max-width: 260px;
+        padding: 14px;
+        box-sizing: border-box;
+    }
+    .book-rating-mini {
+        font-size: 11px;
+    }
+    .mini-book h4 {
+        font-size: 18px;
+    }
+    .mini-book p {
+        font-size: 14px;
+        line-height: 1.45;
+    }
+    .book-action-row {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    .read-book-btn,
+    .read-pdf-btn,
+    .book-review-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 42px;
+        box-sizing: border-box;
+    }
+
+    /* REVIEWS SCOREBOARD */
+    .reviews-scoreboard {
+        padding: 20px 16px;
+        margin-bottom: 28px;
+        gap: 16px;
+    }
+    .score-large {
+        font-size: 46px;
+    }
+    .score-stars {
+        font-size: 17px;
+        letter-spacing: 2px;
+    }
+    .score-breakdown {
+        padding: 0;
+        gap: 8px;
+    }
+    .rating-bar-row {
+        gap: 8px;
+        font-size: 12px;
+    }
+    .bar-label {
+        width: 95px;
+        font-size: 11px;
+    }
+    .bar-pct {
+        width: 32px;
+        font-size: 11px;
+    }
+    .score-action {
+        padding-top: 14px;
+        gap: 8px;
+    }
+    .inscribe-review-btn {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 13px;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+    .scribe-hint {
+        font-size: 12px;
+    }
+
+    /* REVIEWS FILTER & SORT */
+    .review-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 14px;
+    }
+    .filter-pills {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .filter-pill {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    .sort-selector {
+        width: 100%;
+        justify-content: space-between;
+        font-size: 12px;
+    }
+    .sort-selector select {
+        padding: 6px 10px;
+        font-size: 12px;
+        flex-grow: 1;
+        max-width: 180px;
+    }
+
+    /* REVIEWS GRID */
+    .reviews-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .review-scroll-card {
+        padding: 18px 16px;
+        box-sizing: border-box;
+    }
+    .review-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    .review-date {
+        font-size: 11px;
+    }
+    .review-stars-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .book-tag-pill {
+        font-size: 11px;
+        padding: 3px 8px;
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+    }
+    .review-title {
+        font-size: 17px;
+    }
+    .review-body {
+        font-size: 15px;
+        line-height: 1.5;
+    }
+    .review-card-footer {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    /* ABOUT SECTION */
+    .about-parchment-frame {
+        padding: 24px 16px;
+    }
+    .wax-seal-corner {
+        width: 36px;
+        height: 36px;
+        top: 10px;
+        right: 10px;
+    }
+    .about-author-header h3 {
+        font-size: 22px;
+    }
+    .author-title-tag {
+        font-size: 12px;
+    }
+    .about-content p {
+        font-size: 15px;
+        line-height: 1.55;
+    }
+    .quote-block {
+        padding: 14px 12px;
+        font-size: 15px;
+        margin: 16px 0;
+    }
+
+    /* FOOTER */
+    footer {
+        padding: 35px 16px 20px 16px;
+    }
+    .footer-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+    }
+    .footer-nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 16px;
+        font-size: 12px;
+    }
+
+    /* MODALS */
+    .modal-backdrop {
+        padding: 10px;
+    }
+    .parchment-modal-box {
+        padding: 20px 14px;
+        width: 100%;
+        max-height: 92vh;
+        box-sizing: border-box;
+    }
+    .modal-close-btn {
+        top: 8px;
+        right: 10px;
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-header h3 {
+        font-size: 20px;
+    }
+    .modal-subtitle {
+        font-size: 12px;
     }
     .form-row-2 {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
-    .about-parchment-frame {
-        padding: 40px 24px;
+    .parchment-form input,
+    .parchment-form select,
+    .parchment-form textarea {
+        font-size: 16px;
+        padding: 9px 12px;
+        box-sizing: border-box;
     }
-    .parchment-modal-box {
-        padding: 25px 20px;
+    .star-rating-picker {
+        flex-wrap: wrap;
+        gap: 2px;
     }
+    .star-pick-btn {
+        font-size: 26px;
+        padding: 2px 4px;
+    }
+    .rating-label-text {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 4px;
+        font-size: 12px;
+    }
+    .modal-form-actions {
+        flex-direction: column-reverse;
+        gap: 10px;
+        width: 100%;
+    }
+    .btn-cancel,
+    .submit-scroll-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+
+    /* BOOK EXCERPT MODAL */
     .excerpt-header {
         flex-direction: column;
         text-align: center;
-        gap: 12px;
+        gap: 10px;
+    }
+    .excerpt-cover {
+        width: 85px;
+        margin: 0 auto;
+    }
+    .excerpt-header-info h3 {
+        font-size: 20px;
+    }
+    .excerpt-meta-tags {
+        justify-content: center;
+    }
+    .excerpt-text {
+        padding: 14px 12px;
+        font-size: 14px;
+        max-height: 220px;
+        line-height: 1.55;
     }
     .excerpt-actions {
         flex-direction: column;
         gap: 10px;
+        width: 100%;
+    }
+    .excerpt-actions .magical-btn,
+    .excerpt-actions .book-review-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-tagline {
+        display: none;
+    }
+    .c3 {
+        display: none;
+    }
+    .wax-seal-corner {
+        display: none;
     }
 }

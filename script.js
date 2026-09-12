@@ -12,7 +12,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const DEFAULT_REVIEWS = [];
 
     const BOOK_EXCERPTS = {
-        arjun: {
+        arjun_series: {
+            title: "Arjun’s Odyssey",
+            badge: "Series Lore • Epic Fantasy Adventure",
+            author: "Varun Chaubey",
+            series: "Arjun’s Odyssey",
+            genre: "Epic Fantasy Adventure",
+            readingAge: "11+",
+            coverImg: "images/arjun1.png",
+            lead: "Five relics. Five universes. One journey. And a secret waiting at the end of it all.",
+            excerpt: `Arjun’s Odyssey is an epic fantasy adventure that follows Arjun and his brother Vikram as an unexpected discovery draws them into a world far beyond their own.
+
+What begins as a mysterious journey through Navrang Van soon reveals the existence of five ancient relics, scattered across five different mystical universes. Each relic is connected to a forgotten power, and finding them will take the brothers far beyond the boundaries of the world they know.
+
+Guided at times by a mysterious man who seems to know far more about their journey than he reveals, Arjun and Vikram must face magical forests, ancient temples, mythical creatures, powerful guardians, strange worlds, and challenges that test not only their courage, but their trust in one another.
+
+But there is a reason the relics were scattered.
+
+And as Arjun's journey unfolds, he will discover that the person guiding them may not be the ally he appears to be.
+
+Five relics. Five universes. One journey. And a secret waiting at the end of it all.`,
+            primaryActionText: "Inspect Book Stacks",
+            primaryActionType: "scroll_stacks",
+            targetSlider: "sliderArjun",
+            secondaryActionText: "Inscribe Series Review"
+        },
+        arjun_book1: {
             title: "Arjun’s Odyssey: Mysteries of Navrang Van",
             badge: "Arjun’s Odyssey • Book 1 • Reading Age 11+",
             author: "Varun Chaubey",
@@ -21,20 +46,44 @@ document.addEventListener("DOMContentLoaded", () => {
             genre: "Fantasy • Adventure • Mystery",
             readingAge: "11+",
             coverImg: "images/arjun1.png",
-            lead: "Short Description: An ancient treasure map, a mysterious locket, and the mythical forest of Navrang Van.",
+            lead: "An ancient treasure map, a mysterious locket, and the mythical forest of Navrang Van.",
             excerpt: `Arjun’s Odyssey: Mysteries of Navrang Van follows Arjun Singh and his adventurous elder brother Vikram as they embark on their first great journey after discovering an ancient treasure map and a mysterious locket.
 
 Their search leads them into Navrang Van, a magical forest filled with strange plants, mythical creatures, dangerous challenges, and forgotten secrets. Along the way, they encounter a mysterious man, the serpent Vasuki, the dragon guardians Satyendra and Mithyendra, and other unexpected dangers.
 
 What begins as a search for treasure soon becomes something much bigger, revealing that their adventure is only the beginning of a much greater journey.`,
-            primaryActionText: "Inquire for Full Grimoire",
-            primaryActionType: "review",
+            primaryActionText: "Read Book (PDF)",
+            primaryActionType: "pdf",
+            pdfLink: "books/Arjun's Odyssey - Mysteries of Navrang Van.pdf",
             secondaryActionText: "Inscribe Scroll Review"
         },
-        files: {
-            title: "Files They Buried: The Case That Stayed",
-            badge: "Files They Buried • Psychological Crime Thriller",
+        files_series: {
+            title: "Files They Buried",
+            badge: "Series Lore • Psychological Crime Thriller",
             author: "Varun Chaubey",
+            series: "Files They Buried",
+            genre: "Psychological Crime Thriller",
+            coverImg: "images/files1.png",
+            lead: "Every case has a file. Every file has a truth. And some truths were buried for a reason.",
+            excerpt: `Files They Buried follows Kabir Verma, a police investigator whose career becomes intertwined with cases that refuse to stay buried.
+
+Each book explores a different case—different victims, different motives, and different truths hidden beneath the official story.
+
+But beneath these individual investigations lies a larger story involving Kabir, his partner Vikram Chauhan, and the cases that continue to connect their past with the present.
+
+Every case has a file.
+Every file has a truth.
+And some truths were buried for a reason.`,
+            primaryActionText: "Access Dossiers",
+            primaryActionType: "scroll_stacks",
+            targetSlider: "sliderFiles",
+            secondaryActionText: "Inscribe Case Review"
+        },
+        files_book1: {
+            title: "Files They Buried: The Case That Stayed",
+            badge: "Files They Buried • Case 01 • Crime Thriller",
+            author: "Varun Chaubey",
+            series: "Files They Buried",
             genre: "Psychological Crime Thriller",
             coverImg: "images/files1.png",
             lead: "Some cases get closed. This one stayed.",
@@ -54,6 +103,10 @@ Some cases get closed. This one stayed.`,
             secondaryActionText: "Inscribe Case Review"
         }
     };
+
+    // Aliases for compatibility
+    BOOK_EXCERPTS.arjun = BOOK_EXCERPTS.arjun_series;
+    BOOK_EXCERPTS.files = BOOK_EXCERPTS.files_series;
 
     // Purge any old fake reviews and load real user reviews from storage
     function getStoredReviews() {
@@ -314,6 +367,9 @@ Some cases get closed. This one stayed.`,
                 slider.classList.add("show");
                 btn.querySelector(".btn-text").textContent = "Hide Stacks";
                 btn.querySelector(".arrow-icon").textContent = "▴";
+                if (typeof window.refreshScrollReveal === "function") {
+                    window.refreshScrollReveal();
+                }
             }
         });
     });
@@ -326,19 +382,19 @@ Some cases get closed. This one stayed.`,
 
         slider.addEventListener("mousedown", (e) => {
             isDown = true;
-            slider.style.cursor = "grabbing";
+            slider.style.cursor = "var(--cursor-wand-pointer)";
             startX = e.pageX - slider.offsetLeft;
             scrollLeft = slider.scrollLeft;
         });
 
         slider.addEventListener("mouseleave", () => {
             isDown = false;
-            slider.style.cursor = "grab";
+            slider.style.cursor = "var(--cursor-wand-default)";
         });
 
         slider.addEventListener("mouseup", () => {
             isDown = false;
-            slider.style.cursor = "grab";
+            slider.style.cursor = "var(--cursor-wand-default)";
         });
 
         slider.addEventListener("mousemove", (e) => {
@@ -553,6 +609,11 @@ Some cases get closed. This one stayed.`,
                 handleHelpfulClick(reviewId, btn);
             });
         });
+
+        // Trigger on-scroll reveal for newly rendered reviews
+        if (typeof window.refreshScrollReveal === "function") {
+            window.refreshScrollReveal();
+        }
     }
 
     function handleHelpfulClick(reviewId, buttonElement) {
@@ -901,12 +962,16 @@ Some cases get closed. This one stayed.`,
                         ? `<a href="${data.pdfLink}" target="_blank" rel="noopener" class="magical-btn primary-btn">
                             <span>📄</span> Declassify & Read PDF
                            </a>`
+                        : data.primaryActionType === "scroll_stacks"
+                        ? `<button class="magical-btn primary-btn" id="excerptReadAction">
+                            <span>📚</span> ${escapeHtml(data.primaryActionText || "Inspect Stacks")}
+                           </button>`
                         : `<button class="magical-btn primary-btn" id="excerptReadAction">
-                            <span>📜</span> Read Complete Lore
+                            <span>📜</span> ${escapeHtml(data.primaryActionText || "Read Complete Lore")}
                            </button>`
                 }
                 <button class="book-review-btn" id="excerptReviewAction" style="padding: 12px 18px; font-size: 13px;">
-                    <span>🪶</span> Inscribe Review
+                    <span>🪶</span> ${escapeHtml(data.secondaryActionText || "Inscribe Review")}
                 </button>
             </div>
         `;
@@ -925,7 +990,17 @@ Some cases get closed. This one stayed.`,
         const excerptReadAction = document.getElementById("excerptReadAction");
         if (excerptReadAction) {
             excerptReadAction.addEventListener("click", () => {
-                showToast("Full grimoire edition is undergoing final enchanted binding!");
+                if (data.primaryActionType === "scroll_stacks" && data.targetSlider) {
+                    closeBookExcerptModal();
+                    const slider = document.getElementById(data.targetSlider);
+                    if (slider) {
+                        slider.classList.add("show");
+                        slider.scrollIntoView({ behavior: "smooth", block: "center" });
+                        showToast(`⚜ Unfolding the archives of ${data.title}!`);
+                    }
+                } else {
+                    showToast("Full grimoire edition is undergoing final enchanted binding!");
+                }
             });
         }
     }
@@ -963,6 +1038,28 @@ Some cases get closed. This one stayed.`,
         });
     });
 
+    // Allow clicking book cover wraps to open full details/lore modal
+    document.querySelectorAll(".tome-card .book-cover-wrap").forEach((wrap) => {
+        wrap.addEventListener("click", () => {
+            const card = wrap.closest(".tome-card");
+            if (card && card.closest("#sliderArjun")) {
+                openBookExcerptModal("arjun_book1");
+            } else if (card && card.closest("#sliderFiles")) {
+                openBookExcerptModal("files_book1");
+            }
+        });
+    });
+
+    document.querySelectorAll(".read-pdf-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (window.ArcaneAudio && typeof window.ArcaneAudio.playParchment === "function") {
+                window.ArcaneAudio.playParchment();
+            } else if (window.ArcaneAudio && typeof window.ArcaneAudio.playScroll === "function") {
+                window.ArcaneAudio.playScroll();
+            }
+        });
+    });
+
     // =========================================================================
     // 11. KEYBOARD NAVIGATION (ESCAPE TO CLOSE MODALS)
     // =========================================================================
@@ -994,8 +1091,134 @@ Some cases get closed. This one stayed.`,
             toast.classList.remove("show");
         }, 3600);
     }
+    window.showToast = showToast;
+
+    // =========================================================================
+    // 13. MAGICAL ON-SCROLL FADE-IN & REVEAL SYSTEM
+    // =========================================================================
+    function initScrollReveal() {
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+            // Immediate display fallback for reduced motion or legacy browsers
+            document.querySelectorAll(
+                ".series-card, .mini-book, .reviews-scoreboard, .review-filter-bar, .review-scroll-card"
+            ).forEach((el) => {
+                el.classList.add("revealed");
+            });
+            return;
+        }
+
+        const revealObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        target.classList.add("revealed");
+                        target.classList.add("reveal-aura");
+                        observer.unobserve(target);
+                    }
+                });
+            },
+            {
+                root: null,
+                threshold: 0.08,
+                rootMargin: "0px 0px -40px 0px"
+            }
+        );
+
+        function registerScrollElements() {
+            // Observe book cards, series containers, and review elements
+            const targets = document.querySelectorAll(
+                ".series-card:not(.revealed), .mini-book:not(.revealed), .reviews-scoreboard:not(.revealed), .review-filter-bar:not(.revealed), .review-scroll-card:not(.revealed)"
+            );
+
+            targets.forEach((el) => {
+                if (!el.classList.contains("scroll-reveal")) {
+                    el.classList.add("scroll-reveal");
+                }
+
+                // Stagger cascade for multiple cards in grid or slider
+                if (el.classList.contains("mini-book") || el.classList.contains("review-scroll-card")) {
+                    const parent = el.parentElement;
+                    if (parent) {
+                        const siblings = Array.from(parent.children).filter((c) =>
+                            c.classList.contains("mini-book") || c.classList.contains("review-scroll-card")
+                        );
+                        const idx = siblings.indexOf(el);
+                        if (idx >= 0) {
+                            const delay = ((idx % 4) * 0.12).toFixed(2);
+                            el.style.transitionDelay = `${delay}s`;
+                        }
+                    }
+                }
+
+                revealObserver.observe(el);
+            });
+        }
+
+        window.refreshScrollReveal = registerScrollElements;
+        registerScrollElements();
+    }
+
+    // ==========================================================================
+    // ENCHANTED WAND STARDUST TRAIL
+    // ==========================================================================
+    function initWandSparkles() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (!window.matchMedia("(pointer: fine)").matches) return;
+
+        let lastSparkleTime = 0;
+        const sparkColors = ["#ffd700", "#fff5b8", "#ffffff", "#e6c229", "#d4af37"];
+
+        function spawnSpark(x, y, isClick = false) {
+            const count = isClick ? 5 : 1;
+            for (let i = 0; i < count; i++) {
+                const sparkle = document.createElement("div");
+                sparkle.className = "wand-stardust";
+                const size = isClick ? (Math.random() * 3.5 + 2.5) : (Math.random() * 2.5 + 1.8);
+                const color = sparkColors[Math.floor(Math.random() * sparkColors.length)];
+
+                // Offset around wand hotspot (at x, y)
+                const offsetX = (Math.random() - 0.5) * (isClick ? 14 : 4);
+                const offsetY = (Math.random() - 0.5) * (isClick ? 14 : 4);
+
+                sparkle.style.left = `${x + offsetX}px`;
+                sparkle.style.top = `${y + offsetY}px`;
+                sparkle.style.width = `${size}px`;
+                sparkle.style.height = `${size}px`;
+                sparkle.style.backgroundColor = color;
+                sparkle.style.boxShadow = `0 0 ${size * 2}px ${color}`;
+
+                document.body.appendChild(sparkle);
+
+                const anim = sparkle.animate([
+                    { opacity: 0.9, transform: "scale(1) translate(0, 0)" },
+                    { opacity: 0, transform: `scale(0.2) translate(${(Math.random() - 0.5) * 12}px, ${Math.random() * 12 + 6}px)` }
+                ], {
+                    duration: isClick ? 500 : 380,
+                    easing: "ease-out"
+                });
+
+                anim.onfinish = () => sparkle.remove();
+            }
+        }
+
+        window.addEventListener("mousemove", (e) => {
+            const now = performance.now();
+            if (now - lastSparkleTime > 50) { // ~20 fps throttle
+                spawnSpark(e.clientX, e.clientY);
+                lastSparkleTime = now;
+            }
+        }, { passive: true });
+
+        window.addEventListener("click", (e) => {
+            spawnSpark(e.clientX, e.clientY, true);
+        }, { passive: true });
+    }
 
     // Initial render and live fetch from Firestore Database
+    initWandSparkles();
+    initScrollReveal();
     updateScoreboard();
     renderReviews();
     fetchReviewsFromDatabase();

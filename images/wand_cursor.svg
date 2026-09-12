@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="wandWoodNormal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8c4e25"/>
+      <stop offset="50%" stop-color="#5a2f14"/>
+      <stop offset="100%" stop-color="#361a0a"/>
+    </linearGradient>
+    <linearGradient id="wandGripNormal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#361a0a"/>
+      <stop offset="50%" stop-color="#1f0e05"/>
+      <stop offset="100%" stop-color="#0f0602"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark silhouette outline for 100% contrast on white and black backgrounds -->
+  <line x1="5.5" y1="5.5" x2="20.5" y2="20.5" stroke="#000000" stroke-width="4.0" stroke-linecap="round"/>
+  <line x1="19" y1="19" x2="27.5" y2="27.5" stroke="#000000" stroke-width="5.5" stroke-linecap="round"/>
+  <circle cx="27.5" cy="27.5" r="3.0" fill="#000000"/>
+
+  <!-- Wand Shaft -->
+  <line x1="5.5" y1="5.5" x2="20.5" y2="20.5" stroke="url(#wandWoodNormal)" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="5.2" y1="5.2" x2="19.5" y2="19.5" stroke="#ba7542" stroke-width="0.8" stroke-linecap="round"/>
+
+  <!-- Wand Handle -->
+  <line x1="19" y1="19" x2="27.5" y2="27.5" stroke="url(#wandGripNormal)" stroke-width="3.6" stroke-linecap="round"/>
+
+  <!-- Gold bands and pommel -->
+  <circle cx="19" cy="19" r="1.9" fill="#d4af37" stroke="#8a6d1c" stroke-width="0.5"/>
+  <circle cx="23" cy="23" r="2.0" fill="#d4af37" stroke="#8a6d1c" stroke-width="0.5"/>
+  <circle cx="27.5" cy="27.5" r="2.2" fill="#ffd700" stroke="#8a6d1c" stroke-width="0.5"/>
+
+  <!-- Tip Collar -->
+  <circle cx="5.5" cy="5.5" r="1.4" fill="#ffd700" stroke="#8a6d1c" stroke-width="0.5"/>
+
+  <!-- Sparkle Star at Tip (3, 3) -->
+  <line x1="1" y1="3" x2="5" y2="3" stroke="#000000" stroke-width="2.0" stroke-linecap="round"/>
+  <line x1="3" y1="1" x2="3" y2="5" stroke="#000000" stroke-width="2.0" stroke-linecap="round"/>
+  <line x1="1" y1="3" x2="5" y2="3" stroke="#ffffff" stroke-width="1.0" stroke-linecap="round"/>
+  <line x1="3" y1="1" x2="3" y2="5" stroke="#ffffff" stroke-width="1.0" stroke-linecap="round"/>
+  <circle cx="3" cy="3" r="1.1" fill="#ffffff"/>
+  <circle cx="6.5" cy="1.8" r="0.75" fill="#ffeaa7"/>
+  <circle cx="1.8" cy="6.5" r="0.75" fill="#ffeaa7"/>
+</svg>

@@ -141,32 +141,157 @@ Some cases get closed. This one stayed.`,
     let currentFilter = "all";
     let currentSort = "highest";
 
-    // Fetch real reviews from Firestore database via /api/reviews
+    // Direct Google Cloud Firestore Configuration (Client-side)
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyA7N5zvVH34uleZM0_hbIHkFU0rLmlkzfI",
+        authDomain: "nomadic-voltage-k07pf.firebaseapp.com",
+        projectId: "nomadic-voltage-k07pf",
+        storageBucket: "nomadic-voltage-k07pf.firebasestorage.app",
+        messagingSenderId: "303819541823",
+        appId: "1:303819541823:web:52694197df5e4cc42d978a"
+    };
+    const FIRESTORE_DB_ID = "ai-studio-arcane-fc6d21b8-8112-447c-9c40-7c57b852a9b7";
+
+    let clientDb = null;
+    let fbModule = null;
+
+    function mergeAndApplyReviews(newReviewsList) {
+        if (!Array.isArray(newReviewsList)) return;
+        
+        const reviewMap = new Map();
+        // Add remote reviews from cloud
+        newReviewsList.forEach((r) => {
+            if (r && r.id) reviewMap.set(r.id, r);
+        });
+        // Retain any pending locally created reviews until synced to cloud
+        reviews.forEach((r) => {
+            if (r && r.id && String(r.id).startsWith("rev-") && !reviewMap.has(r.id)) {
+                reviewMap.set(r.id, r);
+            }
+        });
+
+        reviews = Array.from(reviewMap.values());
+        reviews.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+        saveStoredReviews(reviews);
+        updateScoreboard();
+        renderReviews();
+
+        const ledgerPill = document.getElementById("ledgerStatusPill");
+        if (ledgerPill) {
+            ledgerPill.innerHTML = '<span class="ledger-dot"></span><span>Global Cloud Archive • Active</span>';
+        }
+    }
+
+    // Sync any reviews that were saved only in localStorage (starts with rev-)
+    async function syncPendingLocalReviews() {
+        if (!clientDb || !fbModule) return;
+        const currentLocal = getStoredReviews();
+        const pending = currentLocal.filter((r) => r.id && String(r.id).startsWith("rev-"));
+        if (pending.length === 0) return;
+
+        for (const item of pending) {
+            try {
+                const { id, ...dataToSave } = item;
+                const docRef = await fbModule.addDoc(fbModule.collection(clientDb, "reviews"), {
+                    ...dataToSave,
+                    timestamp: Number(dataToSave.timestamp) || Date.now(),
+                    helpfulCount: Number(dataToSave.helpfulCount) || 0,
+                    verified: true
+                });
+                if (docRef && docRef.id) {
+                    item.id = docRef.id;
+                    console.log("[Firestore Client] Synced local scroll to cloud:", docRef.id);
+                }
+            } catch (syncErr) {
+                console.warn("[Firestore Client] Sync pending failed:", syncErr);
+            }
+        }
+        saveStoredReviews(currentLocal);
+    }
+
+    // Direct Google Cloud Firestore initialization via CDN module
+    async function initClientFirestore() {
+        try {
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+            const {
+                getFirestore,
+                collection,
+                getDocs,
+                addDoc,
+                doc,
+                updateDoc,
+                increment,
+                query,
+                orderBy,
+                onSnapshot
+            } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+            const app = initializeApp(FIREBASE_CONFIG, "arcane-scribe-client");
+            clientDb = getFirestore(app, FIRESTORE_DB_ID);
+            fbModule = {
+                collection,
+                getDocs,
+                addDoc,
+                doc,
+                updateDoc,
+                increment,
+                query,
+                orderBy,
+                onSnapshot
+            };
+
+            console.log("[Firestore Client] Direct cloud link established.");
+
+            // Listen for real-time reviews across all users worldwide
+            const reviewsColl = collection(clientDb, "reviews");
+            const q = query(reviewsColl, orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const cloudReviews = [];
+                snapshot.forEach((docSnap) => {
+                    cloudReviews.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
+                });
+                if (cloudReviews.length > 0) {
+                    mergeAndApplyReviews(cloudReviews);
+                }
+            }, (err) => {
+                console.warn("[Firestore Client] onSnapshot fallback to polling:", err);
+                fetchReviewsFromDatabase();
+            });
+
+            // Immediately sync any locally created reviews to cloud
+            await syncPendingLocalReviews();
+            return true;
+        } catch (err) {
+            console.warn("[Firestore Client] Direct connection bypassed, relying on API fallback:", err);
+            return false;
+        }
+    }
+
+    // Fallback: Fetch real reviews from Firestore via /api/reviews
     async function fetchReviewsFromDatabase() {
         const ledgerPill = document.getElementById("ledgerStatusPill");
         try {
-            const response = await fetch('/api/reviews');
-            if (response.ok) {
+            const response = await fetch('/api/reviews', {
+                headers: { 'Accept': 'application/json' },
+                cache: 'no-store'
+            });
+            const contentType = response.headers.get("content-type");
+            if (response.ok && contentType && contentType.includes("application/json")) {
                 const data = await response.json();
-                if (Array.isArray(data)) {
-                    reviews = data;
-                    saveStoredReviews(reviews);
-                    updateScoreboard();
-                    renderReviews();
-                    if (ledgerPill) {
-                        ledgerPill.innerHTML = '<span class="ledger-dot"></span><span>Global Cloud Archive • Active</span>';
-                    }
+                if (Array.isArray(data) && data.length > 0) {
+                    mergeAndApplyReviews(data);
                     return;
                 }
             }
         } catch (err) {
-            console.warn("[Firestore] Unable to fetch remote reviews, using local cache:", err);
-            if (ledgerPill) {
+            console.warn("[Firestore] Unable to fetch remote reviews via API:", err);
+            if (ledgerPill && (!clientDb)) {
                 ledgerPill.innerHTML = '<span class="ledger-dot" style="background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span><span>Archival Cache Active</span>';
             }
         }
-        updateScoreboard();
-        renderReviews();
     }
 
     // Auto-sync with Firestore every 15 seconds and on tab refocus
@@ -174,6 +299,7 @@ Some cases get closed. This one stayed.`,
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
             fetchReviewsFromDatabase();
+            syncPendingLocalReviews();
         }
     });
 
@@ -359,13 +485,17 @@ Some cases get closed. This one stayed.`,
             if (!slider) return;
 
             const isShown = slider.classList.contains("show");
+            const mobileCtrl = document.querySelector(`.mobile-slider-controls[data-slider="${targetId}"]`);
+
             if (isShown) {
                 slider.classList.remove("show");
+                if (mobileCtrl) mobileCtrl.style.display = "none";
                 btn.querySelector(".btn-text").textContent = targetId.includes("Arjun") ? "Inspect Stacks" : "Access Dossiers";
                 btn.querySelector(".arrow-icon").textContent = "▾";
             } else {
                 slider.classList.add("show");
-                btn.querySelector(".btn-text").textContent = "Hide Stacks";
+                if (mobileCtrl) mobileCtrl.style.display = "";
+                btn.querySelector(".btn-text").textContent = targetId.includes("Arjun") ? "Hide Stacks" : "Hide Dossiers";
                 btn.querySelector(".arrow-icon").textContent = "▴";
                 if (typeof window.refreshScrollReveal === "function") {
                     window.refreshScrollReveal();
@@ -373,6 +503,74 @@ Some cases get closed. This one stayed.`,
             }
         });
     });
+
+    // Mobile Carousel Navigation Engine
+    function initMobileSliders() {
+        const mobileControls = document.querySelectorAll(".mobile-slider-controls");
+        mobileControls.forEach((ctrl) => {
+            const sliderId = ctrl.getAttribute("data-slider");
+            const slider = document.getElementById(sliderId);
+            if (!slider) return;
+
+            const prevBtn = ctrl.querySelector(".prev-btn");
+            const nextBtn = ctrl.querySelector(".next-btn");
+            const dots = ctrl.querySelectorAll(".slider-dot");
+            const counter = ctrl.querySelector(".slider-counter");
+            const cards = slider.querySelectorAll(".mini-book");
+            const total = cards.length || 2;
+            const isDossier = sliderId.toLowerCase().includes("files");
+            const term = isDossier ? "Case" : "Tome";
+
+            function updateState() {
+                const scrollLeft = slider.scrollLeft;
+                const width = slider.clientWidth || 1;
+                const activeIndex = Math.min(total - 1, Math.max(0, Math.round(scrollLeft / width)));
+
+                dots.forEach((dot, idx) => {
+                    dot.classList.toggle("active", idx === activeIndex);
+                });
+
+                if (counter) {
+                    counter.textContent = `${term} ${activeIndex + 1} of ${total}`;
+                }
+
+                if (prevBtn) prevBtn.disabled = activeIndex <= 0;
+                if (nextBtn) nextBtn.disabled = activeIndex >= total - 1;
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener("click", () => {
+                    const step = slider.clientWidth || 300;
+                    slider.scrollBy({ left: -step, behavior: "smooth" });
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener("click", () => {
+                    const step = slider.clientWidth || 300;
+                    slider.scrollBy({ left: step, behavior: "smooth" });
+                });
+            }
+
+            dots.forEach((dot) => {
+                dot.addEventListener("click", () => {
+                    const targetIdx = parseInt(dot.getAttribute("data-index"), 10) || 0;
+                    const step = slider.clientWidth || 300;
+                    slider.scrollTo({ left: targetIdx * step, behavior: "smooth" });
+                });
+            });
+
+            let scrollTimeout;
+            slider.addEventListener("scroll", () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(updateState, 50);
+            }, { passive: true });
+
+            updateState();
+        });
+    }
+
+    initMobileSliders();
 
     const sliders = document.querySelectorAll(".books-slider");
     sliders.forEach((slider) => {
@@ -637,7 +835,21 @@ Some cases get closed. This one stayed.`,
 
             showToast("✦ Scroll marked as enlightening in the ledger!");
 
-            // Sync with Firestore database
+            // 1. Direct Cloud Firestore increment if connected
+            if (clientDb && fbModule && !reviewId.startsWith("rev-")) {
+                try {
+                    const reviewRef = fbModule.doc(clientDb, "reviews", reviewId);
+                    fbModule.updateDoc(reviewRef, {
+                        helpfulCount: fbModule.increment(1)
+                    }).catch((err) => {
+                        console.warn("[Firestore Client] Direct increment failed:", err);
+                    });
+                } catch (e) {
+                    console.warn("[Firestore Client] Error updating doc:", e);
+                }
+            }
+
+            // 2. Sync with Firestore database server API
             fetch(`/api/reviews/${encodeURIComponent(reviewId)}/helpful`, {
                 method: "POST"
             }).catch((err) => {
@@ -712,12 +924,16 @@ Some cases get closed. This one stayed.`,
 
     function openReviewModal(preferredBookTitle = null) {
         if (!reviewModal) return;
-        if (preferredBookTitle && reviewBookSelect) {
-            for (let i = 0; i < reviewBookSelect.options.length; i++) {
-                if (reviewBookSelect.options[i].value.toLowerCase().includes(preferredBookTitle.toLowerCase())) {
-                    reviewBookSelect.selectedIndex = i;
-                    break;
+        if (reviewBookSelect) {
+            if (preferredBookTitle) {
+                for (let i = 0; i < reviewBookSelect.options.length; i++) {
+                    if (reviewBookSelect.options[i].value.toLowerCase().includes(preferredBookTitle.toLowerCase())) {
+                        reviewBookSelect.selectedIndex = i;
+                        break;
+                    }
                 }
+            } else {
+                reviewBookSelect.selectedIndex = 0;
             }
         }
         reviewModal.removeAttribute("hidden");
@@ -852,35 +1068,69 @@ Some cases get closed. This one stayed.`,
                 verified: true
             };
 
-            // Save to Firestore Database via /api/reviews
-            try {
-                const res = await fetch("/api/reviews", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
+            // Save to Firestore Cloud (direct write + server API fallback)
+            let savedToCloud = false;
+
+            // 1. Direct Cloud Firestore write
+            if (clientDb && fbModule) {
+                try {
+                    const docRef = await fbModule.addDoc(fbModule.collection(clientDb, "reviews"), {
+                        bookCategory: bookCat,
                         bookTitle: selectedBook,
-                        reviewerName,
+                        reviewerName: reviewerName,
                         reviewerAffiliation: reviewerHouse,
-                        rating,
+                        avatarColor: avatarColor,
+                        rating: rating,
+                        date: dateStr,
+                        timestamp: Date.now(),
                         title: reviewTitle,
                         content: reviewContent,
-                        avatarColor
-                    })
-                });
-
-                if (res.ok) {
-                    const savedData = await res.json();
-                    if (savedData && savedData.id) {
-                        newReview = savedData;
+                        helpfulCount: 0,
+                        verified: true
+                    });
+                    if (docRef && docRef.id) {
+                        newReview.id = docRef.id;
+                        savedToCloud = true;
+                        console.log("[Firestore Client] Direct scroll inscribed with ID:", docRef.id);
                     }
+                } catch (directErr) {
+                    console.warn("[Firestore Client] Direct write error, trying server API:", directErr);
                 }
-            } catch (err) {
-                console.warn("[Firestore] Failed to persist to server, keeping local cache:", err);
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHtml;
+            }
+
+            // 2. Server API fallback if direct write did not succeed
+            if (!savedToCloud) {
+                try {
+                    const res = await fetch("/api/reviews", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            bookTitle: selectedBook,
+                            reviewerName,
+                            reviewerAffiliation: reviewerHouse,
+                            rating,
+                            title: reviewTitle,
+                            content: reviewContent,
+                            avatarColor
+                        })
+                    });
+
+                    const contentType = res.headers.get("content-type");
+                    if (res.ok && contentType && contentType.includes("application/json")) {
+                        const savedData = await res.json();
+                        if (savedData && savedData.id) {
+                            newReview = savedData;
+                            savedToCloud = true;
+                        }
+                    }
+                } catch (err) {
+                    console.warn("[Firestore] Failed to persist to server, keeping local scroll:", err);
                 }
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
             }
 
             if (!reviews.some((r) => r.id === newReview.id)) {
@@ -1222,4 +1472,5 @@ Some cases get closed. This one stayed.`,
     updateScoreboard();
     renderReviews();
     fetchReviewsFromDatabase();
+    initClientFirestore();
 });

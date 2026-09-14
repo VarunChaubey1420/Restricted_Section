@@ -24,6 +24,24 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// Enable CORS and disable aggressive caching for API responses
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // Initialize Firestore from config
 let db = null;
 let firebaseConfig = null;
@@ -41,6 +59,22 @@ try {
 } catch (err) {
   console.error('[Firestore] Initialization error:', err);
 }
+
+// Expose public Firebase configuration for client-side direct connection
+app.get('/api/firebase-config', (req, res) => {
+  if (!firebaseConfig) {
+    return res.status(404).json({ error: 'Firebase config unavailable' });
+  }
+  return res.json({
+    apiKey: firebaseConfig.apiKey,
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    messagingSenderId: firebaseConfig.messagingSenderId,
+    appId: firebaseConfig.appId,
+    firestoreDatabaseId: firebaseConfig.firestoreDatabaseId
+  });
+});
 
 // -----------------------------------------------------------------------------
 // REST API FOR BOOK REVIEWS (FIRESTORE)

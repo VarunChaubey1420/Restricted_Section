@@ -124,14 +124,25 @@
                     </div>
                 </div>
                 <div class="series-cta-row">
-                    <button class="view-books-btn" data-target="sliderArjun">
-                        <span class="btn-text">Inspect Stacks</span>
-                        <span class="arrow-icon">▾</span>
+                    <button class="view-books-btn" data-target="sliderArjun" id="btnArjunStacks">
+                        <span class="btn-text">Hide Stacks</span>
+                        <span class="arrow-icon">▴</span>
                     </button>
                     <button class="preview-tome-btn" data-book="arjun_series">
                         <span>📜 Series Lore</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- MOBILE SLIDER CONTROLS (CAROUSEL NAVIGATION) -->
+            <div class="mobile-slider-controls" data-slider="sliderArjun" aria-label="Arjun's Odyssey Carousel Navigation">
+                <button class="slider-arrow-btn prev-btn" aria-label="Previous Tome" title="Previous Tome" disabled>‹</button>
+                <div class="slider-indicator-wrap">
+                    <button class="slider-dot active" data-index="0" aria-label="Go to Tome 1"></button>
+                    <button class="slider-dot" data-index="1" aria-label="Go to Tome 2"></button>
+                    <span class="slider-counter">Tome 1 of 2</span>
+                </div>
+                <button class="slider-arrow-btn next-btn" aria-label="Next Tome" title="Next Tome">›</button>
             </div>
 
             <!-- HORIZONTAL BOOK SLIDER -->
@@ -189,14 +200,25 @@
                     </div>
                 </div>
                 <div class="series-cta-row">
-                    <button class="view-books-btn" data-target="sliderFiles">
-                        <span class="btn-text">Access Dossiers</span>
-                        <span class="arrow-icon">▾</span>
+                    <button class="view-books-btn" data-target="sliderFiles" id="btnFilesStacks">
+                        <span class="btn-text">Hide Dossiers</span>
+                        <span class="arrow-icon">▴</span>
                     </button>
                     <button class="preview-tome-btn" data-book="files_series">
                         <span>🗂️ Series Lore</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- MOBILE SLIDER CONTROLS (CAROUSEL NAVIGATION) -->
+            <div class="mobile-slider-controls" data-slider="sliderFiles" aria-label="Files They Buried Carousel Navigation">
+                <button class="slider-arrow-btn prev-btn" aria-label="Previous Case" title="Previous Case" disabled>‹</button>
+                <div class="slider-indicator-wrap">
+                    <button class="slider-dot active" data-index="0" aria-label="Go to Case 1"></button>
+                    <button class="slider-dot" data-index="1" aria-label="Go to Case 2"></button>
+                    <span class="slider-counter">Case 1 of 2</span>
+                </div>
+                <button class="slider-arrow-btn next-btn" aria-label="Next Case" title="Next Case">›</button>
             </div>
 
             <!-- HORIZONTAL BOOK SLIDER -->
@@ -386,9 +408,9 @@
                 <div class="form-group">
                     <label for="reviewBookSelect">Choose Book / Tome *</label>
                     <select id="reviewBookSelect" required>
+                        <option value="The Restricted Section (General Archives)" selected>The Restricted Section (General Archives)</option>
                         <option value="Arjun’s Odyssey: Mysteries of Navrang Van">Arjun’s Odyssey: Mysteries of Navrang Van</option>
                         <option value="Files They Buried: The Case That Stayed">Files They Buried: The Case That Stayed</option>
-                        <option value="The Restricted Section (General Archives)">The Restricted Section (General Archives)</option>
                     </select>
                 </div>
 

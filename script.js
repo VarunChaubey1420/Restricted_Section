@@ -35,7 +35,7 @@ Five relics. Five universes. One journey. And a secret waiting at the end of it 
             primaryActionText: "Inspect Book Stacks",
             primaryActionType: "scroll_stacks",
             targetSlider: "sliderArjun",
-            secondaryActionText: "Inscribe Series Review"
+            secondaryActionText: "Write Series Review"
         },
         arjun_book1: {
             title: "Arjun’s Odyssey: Mysteries of Navrang Van",
@@ -55,7 +55,7 @@ What begins as a search for treasure soon becomes something much bigger, reveali
             primaryActionText: "Read Book (PDF)",
             primaryActionType: "pdf",
             pdfLink: "books/Arjun's Odyssey - Mysteries of Navrang Van.pdf",
-            secondaryActionText: "Inscribe Scroll Review"
+            secondaryActionText: "Write Book Review"
         },
         files_series: {
             title: "Files They Buried",
@@ -77,7 +77,7 @@ And some truths were buried for a reason.`,
             primaryActionText: "Access Dossiers",
             primaryActionType: "scroll_stacks",
             targetSlider: "sliderFiles",
-            secondaryActionText: "Inscribe Case Review"
+            secondaryActionText: "Write Case Review"
         },
         files_book1: {
             title: "Files They Buried: The Case That Stayed",
@@ -100,7 +100,7 @@ Some cases get closed. This one stayed.`,
             primaryActionText: "Declassify & Read PDF",
             primaryActionType: "pdf",
             pdfLink: "books/Files They Buried.pdf",
-            secondaryActionText: "Inscribe Case Review"
+            secondaryActionText: "Write Case Review"
         }
     };
 
@@ -108,19 +108,16 @@ Some cases get closed. This one stayed.`,
     BOOK_EXCERPTS.arjun = BOOK_EXCERPTS.arjun_series;
     BOOK_EXCERPTS.files = BOOK_EXCERPTS.files_series;
 
-    // Purge any old fake reviews and load real user reviews from storage
+    // Fresh start: Clear old cache and load real user reviews from storage
     function getStoredReviews() {
         try {
-            const stored = localStorage.getItem("arcane_reviews_v1");
+            // Clear legacy cache from prior versions
+            localStorage.removeItem("arcane_reviews_v1");
+            const stored = localStorage.getItem("arcane_reviews_v2");
             if (stored) {
                 const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
-                    // Filter out any legacy mock reviews
-                    const realReviews = parsed.filter(
-                        (r) => r && !["rev-1", "rev-2", "rev-3", "rev-4", "rev-5", "rev-6"].includes(r.id) &&
-                               !["Scholar Ronald Thorne", "Detective Helena Vance", "Alistair Blackwood", "Dr. Evelyn Graves", "Kaelen Drake", "Marcus Crowley"].includes(r.reviewerName)
-                    );
-                    return realReviews;
+                    return parsed;
                 }
             }
         } catch (e) {
@@ -131,7 +128,7 @@ Some cases get closed. This one stayed.`,
 
     function saveStoredReviews(reviewsList) {
         try {
-            localStorage.setItem("arcane_reviews_v1", JSON.stringify(reviewsList));
+            localStorage.setItem("arcane_reviews_v2", JSON.stringify(reviewsList));
         } catch (e) {
             console.error("Failed to persist reviews locally", e);
         }
@@ -253,9 +250,7 @@ Some cases get closed. This one stayed.`,
                         ...docSnap.data()
                     });
                 });
-                if (cloudReviews.length > 0) {
-                    mergeAndApplyReviews(cloudReviews);
-                }
+                mergeAndApplyReviews(cloudReviews);
             }, (err) => {
                 console.warn("[Firestore Client] onSnapshot fallback to polling:", err);
                 fetchReviewsFromDatabase();
@@ -281,7 +276,7 @@ Some cases get closed. This one stayed.`,
             const contentType = response.headers.get("content-type");
             if (response.ok && contentType && contentType.includes("application/json")) {
                 const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
+                if (Array.isArray(data)) {
                     mergeAndApplyReviews(data);
                     return;
                 }
@@ -652,7 +647,7 @@ Some cases get closed. This one stayed.`,
         if (total === 0) {
             if (scoreLargeEl) scoreLargeEl.textContent = "—";
             if (totalReviewsCountEl) {
-                totalReviewsCountEl.textContent = "No inscribed scrolls yet • Be the first reviewer";
+                totalReviewsCountEl.textContent = "No reviews yet • Be the first reviewer";
             }
             if (rows.length >= 3) {
                 rows.forEach((row) => {
@@ -672,7 +667,7 @@ Some cases get closed. This one stayed.`,
         if (scoreStarsEl) scoreStarsEl.textContent = renderStars(Math.round(Number(avg)));
 
         if (totalReviewsCountEl) {
-            totalReviewsCountEl.textContent = `Based on ${total} Inscribed Scroll${total > 1 ? "s" : ""}`;
+            totalReviewsCountEl.textContent = `Based on ${total} Review${total > 1 ? "s" : ""}`;
         }
 
         // Ratings breakdown
@@ -741,10 +736,10 @@ Some cases get closed. This one stayed.`,
         if (filtered.length === 0) {
             reviewsGrid.innerHTML = `
                 <div class="no-reviews-parchment" style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; border: 1px dashed var(--border-gold); border-radius: 12px; background: rgba(26,17,10,0.5);">
-                    <p style="font-family: var(--font-heading); font-size: 20px; color: var(--gold-light); margin-bottom: 8px;">No scrolls found under this archive category</p>
-                    <p style="color: var(--text-subtle); margin-bottom: 20px;">Be the first scholar to inscribe a review for this volume.</p>
+                    <p style="font-family: var(--font-heading); font-size: 20px; color: var(--gold-light); margin-bottom: 8px;">No reviews yet under this archive category</p>
+                    <p style="color: var(--text-subtle); margin-bottom: 20px;">Be the first reader to share your thoughts for this volume.</p>
                     <button class="magical-btn primary-btn" id="emptyInscribeBtn">
-                        <span class="btn-feather">🪶</span> Inscribe First Scroll
+                        <span class="btn-feather">🪶</span> Write the First Review
                     </button>
                 </div>
             `;
